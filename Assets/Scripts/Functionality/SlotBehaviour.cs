@@ -20,7 +20,7 @@ public class SlotBehaviour : MonoBehaviour
     [SerializeField]
     private List<SlotImage> images;     //class to store total images
     [SerializeField]
-    private List<SlotImage> Tempimages;     //class to store the result matrix
+    private List<SlotImage> Tempimages;     
 
     [Header("Slots Objects")]
     [SerializeField]
@@ -551,14 +551,6 @@ public class SlotBehaviour : MonoBehaviour
         CheckWinPopups();
 
         yield return new WaitUntil(() => !CheckPopups);
-
-        //if (SocketManager.resultData.jackpot > 0)
-        //{
-        //    CheckPopups = true;
-        //    uiManager.PopulateWin(4, SocketManager.resultData.jackpot);
-        //}
-
-        //yield return new WaitUntil(() => !CheckPopups);
 
         if (TotalWin_text) TotalWin_text.text = SocketManager.resultData.WinAmout.ToString("f2");
         if (Balance_text) Balance_text.text = SocketManager.playerdata.Balance.ToString("f2");

@@ -52,8 +52,8 @@ public class UIManager : MonoBehaviour
     //private RectTransform Paytable_RT;
 
     [Header("Popus UI")]
-    [SerializeField]
-    private GameObject MainPopup_Object;
+    [SerializeField] private GameObject PopUpPanel;
+    [SerializeField] private GameObject MainPopup_Object;
 
     [Header("About Popup")]
     [SerializeField]
@@ -83,15 +83,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button SoundOff_Button;
     [SerializeField] private Button MusicOn_Button;
     [SerializeField] private Button MusicOff_Button;
-
-    //[SerializeField]
-    //private GameObject MusicOn_Object;
-    //[SerializeField]
-    //private GameObject MusicOff_Object;
-    //[SerializeField]
-    //private GameObject SoundOn_Object;
-    //[SerializeField]
-    //private GameObject SoundOff_Object;
 
     [Header("all Win Popup")]
     [SerializeField]
@@ -135,7 +126,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject DisconnectPopup_Object;
 
     [Header("Quit Popup")]
-    [SerializeField] private GameObject QuitPopupObject;
+    [SerializeField] private GameObject quitPopupObject;
     [SerializeField] private Button yes_Button;
     [SerializeField] private Button GameExit_Button;
     [SerializeField] private Button no_Button;
@@ -165,24 +156,21 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        if (spalsh_screen) spalsh_screen.SetActive(true);
-        StartCoroutine(LoadingRoutine());
+        // if (spalsh_screen) spalsh_screen.SetActive(true);
+        // StartCoroutine(LoadingRoutine());
     }
 
     private void Start()
     {
 
-        //if (Menu_Button) Menu_Button.onClick.RemoveAllListeners();
-        //if (Menu_Button) Menu_Button.onClick.AddListener(OpenMenu);
-
         if (yes_Button) yes_Button.onClick.RemoveAllListeners();
         if (yes_Button) yes_Button.onClick.AddListener(CallOnExitFunction);
 
         if (no_Button) no_Button.onClick.RemoveAllListeners();
-        if (no_Button) no_Button.onClick.AddListener(delegate { ClosePopup(QuitPopupObject); });
+        if (no_Button) no_Button.onClick.AddListener(delegate { ClosePopup(quitPopupObject); });
 
         if (GameExit_Button) GameExit_Button.onClick.RemoveAllListeners();
-        if (GameExit_Button) GameExit_Button.onClick.AddListener(delegate { OpenPopup(QuitPopupObject); });
+        if (GameExit_Button) GameExit_Button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
 
         if (About_Button) About_Button.onClick.RemoveAllListeners();
         if (About_Button) About_Button.onClick.AddListener(delegate { OpenPopup(AboutPopup_Object); });
@@ -241,7 +229,7 @@ public class UIManager : MonoBehaviour
         //if (audioController) audioController.ToggleMute(false);
 
         if (QuitSplash_button) QuitSplash_button.onClick.RemoveAllListeners();
-        if (QuitSplash_button) QuitSplash_button.onClick.AddListener(delegate { OpenPopup(QuitPopupObject); });
+        if (QuitSplash_button) QuitSplash_button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
 
         isMusic = false;
         isSound = false;
