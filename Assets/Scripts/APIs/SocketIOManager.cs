@@ -16,7 +16,7 @@ using System.Runtime.Serialization;
 public class SocketIOManager : MonoBehaviour
 {
     [Header("scripts")]
-    [SerializeField] private SlotBehaviour slotManager;
+    [SerializeField] private SlotManager slotManager;
     [SerializeField] private UIManager uIManager;
 
     internal GameData initialData = null;

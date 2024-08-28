@@ -7,7 +7,7 @@ using System.Linq;
 using TMPro;
 using System;
 
-public class SlotBehaviour : MonoBehaviour
+public class SlotManager : MonoBehaviour
 {
     [SerializeField]
     private RectTransform mainContainer_RT;
@@ -20,7 +20,7 @@ public class SlotBehaviour : MonoBehaviour
     [SerializeField]
     private List<SlotImage> images;     //class to store total images
     [SerializeField]
-    private List<SlotImage> Tempimages;     
+    private List<SlotImage> Tempimages;     //class to store the result matrix
 
     [Header("Slots Objects")]
     [SerializeField]
@@ -163,7 +163,7 @@ public class SlotBehaviour : MonoBehaviour
 
         if (MaxBet_Button) MaxBet_Button.onClick.RemoveAllListeners();
         if (MaxBet_Button) MaxBet_Button.onClick.AddListener(MaxBet);
-        tweenHeight = (16 * IconSizeFactor) - 280;
+        tweenHeight = (896) +(0);
     }
 
     private void AutoSpin()
@@ -306,10 +306,10 @@ public class SlotBehaviour : MonoBehaviour
     //just for testing purposes delete on production
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && SlotStart_Button.interactable)
-        {
-            StartSlots();
-        }
+        // if (Input.GetKeyDown(KeyCode.Space) && SlotStart_Button.interactable)
+        // {
+        //     StartSlots();
+        // }
     }
 
     internal void SetInitialUI()
@@ -507,31 +507,31 @@ public class SlotBehaviour : MonoBehaviour
         }
         ToggleButtonGrp(false);
 
-        for (int i = 0; i < numberOfSlots; i++)
+        for (int i = 0; i < Slot_Transform.Length; i++)
         {
             InitializeTweening(Slot_Transform[i]);
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.2f);
         }
 
         BalanceDeduction();
 
-        SocketManager.AccumulateResult(BetCounter);
+        // SocketManager.AccumulateResult(BetCounter);
         yield return new WaitForSeconds(0.5f);
 
 
-        for (int j = 0; j < SocketManager.resultData.ResultReel.Count; j++)
-        {
-            List<int> resultnum = SocketManager.resultData.FinalResultReel[j]?.Split(',')?.Select(Int32.Parse)?.ToList();
-            for (int i = 0; i < 5; i++)
-            {
-                if (images[i].slotImages[images[i].slotImages.Count - 5 + j]) images[i].slotImages[images[i].slotImages.Count - 5 + j].sprite = myImages[resultnum[i]];
-                PopulateAnimationSprites(images[i].slotImages[images[i].slotImages.Count - 5 + j].gameObject.GetComponent<ImageAnimation>(), resultnum[i]);
-            }
-        }
+        // for (int j = 0; j < SocketManager.resultData.ResultReel.Count; j++)
+        // {
+        //     List<int> resultnum = SocketManager.resultData.FinalResultReel[j]?.Split(',')?.Select(Int32.Parse)?.ToList();
+        //     for (int i = 0; i < 5; i++)
+        //     {
+        //         if (images[i].slotImages[images[i].slotImages.Count - 5 + j]) images[i].slotImages[images[i].slotImages.Count - 5 + j].sprite = myImages[resultnum[i]];
+        //         PopulateAnimationSprites(images[i].slotImages[images[i].slotImages.Count - 5 + j].gameObject.GetComponent<ImageAnimation>(), resultnum[i]);
+        //     }
+        // }
 
         yield return new WaitForSeconds(0.5f);
 
-        for (int i = 0; i < numberOfSlots; i++)
+        for (int i = 0; i < Slot_Transform.Length; i++)
         {
             yield return StopTweening(5, Slot_Transform[i], i);
         }
@@ -540,20 +540,28 @@ public class SlotBehaviour : MonoBehaviour
 
         if (audioController) audioController.StopSpinAudio();
 
-        CheckPayoutLineBackend(SocketManager.resultData.linesToEmit, SocketManager.resultData.FinalsymbolsToEmit);
+        // CheckPayoutLineBackend(SocketManager.resultData.linesToEmit, SocketManager.resultData.FinalsymbolsToEmit);
 
         KillAllTweens();
 
-        CheckPopups = true;
+        // CheckPopups = true;
 
-        currentBalance = SocketManager.playerdata.Balance;
+        // currentBalance = SocketManager.playerdata.Balance;
 
-        CheckWinPopups();
+        // CheckWinPopups();
 
         yield return new WaitUntil(() => !CheckPopups);
 
-        if (TotalWin_text) TotalWin_text.text = SocketManager.resultData.WinAmout.ToString("f2");
-        if (Balance_text) Balance_text.text = SocketManager.playerdata.Balance.ToString("f2");
+        //if (SocketManager.resultData.jackpot > 0)
+        //{
+        //    CheckPopups = true;
+        //    uiManager.PopulateWin(4, SocketManager.resultData.jackpot);
+        //}
+
+        //yield return new WaitUntil(() => !CheckPopups);
+
+        // if (TotalWin_text) TotalWin_text.text = SocketManager.resultData.WinAmout.ToString("f2");
+        // if (Balance_text) Balance_text.text = SocketManager.playerdata.Balance.ToString("f2");
 
         if (!IsAutoSpin)
         {
@@ -720,26 +728,26 @@ public class SlotBehaviour : MonoBehaviour
     #region TweeningCode
     private void InitializeTweening(Transform slotTransform)
     {
-        slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
-        Tweener tweener = slotTransform.DOLocalMoveY(-tweenHeight, 0.2f).SetLoops(-1, LoopType.Restart).SetDelay(0);
+        // slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
+        Tweener tweener = slotTransform.DOLocalMoveY(-tweenHeight, 0.1f).SetLoops(-1);
         tweener.Play();
         alltweens.Add(tweener);
     }
 
-
-
     private IEnumerator StopTweening(int reqpos, Transform slotTransform, int index)
     {
+        // int tweenpos = (reqpos * (IconSizeFactor + spacefactor)) - (IconSizeFactor + (2 * spacefactor));
+        int[] finalPos=new int[3]{ -270,-370,-170};
         alltweens[index].Pause();
-        int tweenpos = (reqpos * (IconSizeFactor + spacefactor)) - (IconSizeFactor + (2 * spacefactor));
-        alltweens[index] = slotTransform.DOLocalMoveY(-tweenpos + 100 + (spacefactor > 0 ? spacefactor / 4 : 0), 0.5f).SetEase(Ease.OutElastic); // slot initial pos - iconsizefactor - spacing
-        yield return new WaitForSeconds(0.2f);
+        slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
+        alltweens[index] = slotTransform.DOLocalMoveY(-255, 0.5f); // slot initial pos - iconsizefactor - spacing
+        yield return new WaitForSeconds(0.5f);
     }
 
 
     private void KillAllTweens()
     {
-        for (int i = 0; i < numberOfSlots; i++)
+        for (int i = 0; i < alltweens.Count; i++)
         {
             alltweens[i].Kill();
         }
