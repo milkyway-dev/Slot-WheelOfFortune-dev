@@ -163,73 +163,76 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
 
-        if (yes_Button) yes_Button.onClick.RemoveAllListeners();
-        if (yes_Button) yes_Button.onClick.AddListener(CallOnExitFunction);
+        SetButton(yes_Button, CallOnExitFunction);
+        SetButton(no_Button, () => ClosePopup(quitPopupObject));
+        SetButton(GameExit_Button, () => OpenPopup(quitPopupObject));
+        SetButton(About_Button, () => OpenPopup(AboutPopup_Object));
+        SetButton(AboutExit_Button, () => ClosePopup(AboutPopup_Object));
+        SetButton(Settings_Button, () => OpenPopup(SettingsPopup_Object));
+        SetButton(SettingsExit_Button, () => ClosePopup(SettingsPopup_Object));
+        SetButton(MusicOn_Button, ToggleMusic);
+        SetButton(MusicOff_Button, ToggleMusic);
+        SetButton(SoundOn_Button, ToggleSound);
+        SetButton(SoundOff_Button, ToggleSound);
+        SetButton(LeftBtn, () => Slide(-1));
+        SetButton(RightBtn, () => Slide(1));
+        SetButton(CloseDisconnect_Button, CallOnExitFunction);
+        SetButton(Close_Button, () => ClosePopup(LowBalancePopup_Object));
+        SetButton(QuitSplash_button, () => OpenPopup(quitPopupObject));
 
-        if (no_Button) no_Button.onClick.RemoveAllListeners();
-        if (no_Button) no_Button.onClick.AddListener(delegate { ClosePopup(quitPopupObject); });
+        // if (yes_Button) yes_Button.onClick.RemoveAllListeners();
+        // if (yes_Button) yes_Button.onClick.AddListener(CallOnExitFunction);
 
-        if (GameExit_Button) GameExit_Button.onClick.RemoveAllListeners();
-        if (GameExit_Button) GameExit_Button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
+        // if (no_Button) no_Button.onClick.RemoveAllListeners();
+        // if (no_Button) no_Button.onClick.AddListener(delegate { ClosePopup(quitPopupObject); });
 
-        if (About_Button) About_Button.onClick.RemoveAllListeners();
-        if (About_Button) About_Button.onClick.AddListener(delegate { OpenPopup(AboutPopup_Object); });
+        // if (GameExit_Button) GameExit_Button.onClick.RemoveAllListeners();
+        // if (GameExit_Button) GameExit_Button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
 
-        if (AboutExit_Button) AboutExit_Button.onClick.RemoveAllListeners();
-        if (AboutExit_Button) AboutExit_Button.onClick.AddListener(delegate { ClosePopup(AboutPopup_Object); });
+        // if (About_Button) About_Button.onClick.RemoveAllListeners();
+        // if (About_Button) About_Button.onClick.AddListener(delegate { OpenPopup(AboutPopup_Object); });
 
+        // if (AboutExit_Button) AboutExit_Button.onClick.RemoveAllListeners();
+        // if (AboutExit_Button) AboutExit_Button.onClick.AddListener(delegate { ClosePopup(AboutPopup_Object); });
 
-        //if (Paytable_Button) Paytable_Button.onClick.RemoveAllListeners();
-        //if (Paytable_Button) Paytable_Button.onClick.AddListener(delegate { OpenPopup(PaytablePopup_Object); });
+        // if (Settings_Button) Settings_Button.onClick.RemoveAllListeners();
+        // if (Settings_Button) Settings_Button.onClick.AddListener(delegate { OpenPopup(SettingsPopup_Object); });
 
-        //if (PaytableExit_Button) PaytableExit_Button.onClick.RemoveAllListeners();
-        //if (PaytableExit_Button) PaytableExit_Button.onClick.AddListener(delegate { ClosePopup(PaytablePopup_Object); });
+        // if (SettingsExit_Button) SettingsExit_Button.onClick.RemoveAllListeners();
+        // if (SettingsExit_Button) SettingsExit_Button.onClick.AddListener(delegate { ClosePopup(SettingsPopup_Object); });
 
-        if (Settings_Button) Settings_Button.onClick.RemoveAllListeners();
-        if (Settings_Button) Settings_Button.onClick.AddListener(delegate { OpenPopup(SettingsPopup_Object); });
+        // if (MusicOn_Button) MusicOn_Button.onClick.RemoveAllListeners();
+        // if (MusicOn_Button) MusicOn_Button.onClick.AddListener(ToggleMusic);
 
-        if (SettingsExit_Button) SettingsExit_Button.onClick.RemoveAllListeners();
-        if (SettingsExit_Button) SettingsExit_Button.onClick.AddListener(delegate { ClosePopup(SettingsPopup_Object); });
+        // if (MusicOff_Button) MusicOff_Button.onClick.RemoveAllListeners();
+        // if (MusicOff_Button) MusicOff_Button.onClick.AddListener(ToggleMusic);
 
-        if (MusicOn_Button) MusicOn_Button.onClick.RemoveAllListeners();
-        if (MusicOn_Button) MusicOn_Button.onClick.AddListener(ToggleMusic);
+        // if (SoundOn_Button) SoundOn_Button.onClick.RemoveAllListeners();
+        // if (SoundOn_Button) SoundOn_Button.onClick.AddListener(ToggleSound);
 
-        if (MusicOff_Button) MusicOff_Button.onClick.RemoveAllListeners();
-        if (MusicOff_Button) MusicOff_Button.onClick.AddListener(ToggleMusic);
-
-        if (SoundOn_Button) SoundOn_Button.onClick.RemoveAllListeners();
-        if (SoundOn_Button) SoundOn_Button.onClick.AddListener(ToggleSound);
-
-        if (SoundOff_Button) SoundOff_Button.onClick.RemoveAllListeners();
-        if (SoundOff_Button) SoundOff_Button.onClick.AddListener(ToggleSound);
-        //if (MusicOn_Object) MusicOn_Object.SetActive(true);
-        //if (MusicOff_Object) MusicOff_Object.SetActive(false);
-
-        //if (SoundOn_Object) SoundOn_Object.SetActive(true);
-        //if (SoundOff_Object) SoundOff_Object.SetActive(false);
-
-
-
-        paytableList[CurrentIndex = 0].SetActive(true);
-
-        if (LeftBtn) LeftBtn.onClick.RemoveAllListeners();
-        if (LeftBtn) LeftBtn.onClick.AddListener(delegate { Slide(-1); });
-
-        if (RightBtn) RightBtn.onClick.RemoveAllListeners();
-        if (RightBtn) RightBtn.onClick.AddListener(delegate { Slide(+1); });
+        // if (SoundOff_Button) SoundOff_Button.onClick.RemoveAllListeners();
+        // if (SoundOff_Button) SoundOff_Button.onClick.AddListener(ToggleSound);
 
 
-        if (CloseDisconnect_Button) CloseDisconnect_Button.onClick.RemoveAllListeners();
-        if (CloseDisconnect_Button) CloseDisconnect_Button.onClick.AddListener(CallOnExitFunction);
+        // paytableList[CurrentIndex = 0].SetActive(true);
 
-        if (Close_Button) Close_Button.onClick.AddListener(delegate { ClosePopup(LowBalancePopup_Object); });
-        //if (FreeSpin_Button) FreeSpin_Button.onClick.RemoveAllListeners();
-        //if (FreeSpin_Button) FreeSpin_Button.onClick.AddListener(delegate { StartFreeSpins(FreeSpins); });
+        // if (LeftBtn) LeftBtn.onClick.RemoveAllListeners();
+        // if (LeftBtn) LeftBtn.onClick.AddListener(delegate { Slide(-1); });
 
-        //if (audioController) audioController.ToggleMute(false);
+        // if (RightBtn) RightBtn.onClick.RemoveAllListeners();
+        // if (RightBtn) RightBtn.onClick.AddListener(delegate { Slide(+1); });
 
-        if (QuitSplash_button) QuitSplash_button.onClick.RemoveAllListeners();
-        if (QuitSplash_button) QuitSplash_button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
+
+        // if (CloseDisconnect_Button) CloseDisconnect_Button.onClick.RemoveAllListeners();
+        // if (CloseDisconnect_Button) CloseDisconnect_Button.onClick.AddListener(CallOnExitFunction);
+
+        // if (Close_Button) Close_Button.onClick.AddListener(delegate { ClosePopup(LowBalancePopup_Object); });
+
+
+
+
+        // if (QuitSplash_button) QuitSplash_button.onClick.RemoveAllListeners();
+        // if (QuitSplash_button) QuitSplash_button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
 
         isMusic = false;
         isSound = false;
@@ -239,6 +242,13 @@ public class UIManager : MonoBehaviour
 
     }
 
+    void SetButton(Button button, Action action){
+        if (button)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(()=>action());
+        }
+    }
     internal void PopulateWin(int value, double amount)
     {
         switch (value)

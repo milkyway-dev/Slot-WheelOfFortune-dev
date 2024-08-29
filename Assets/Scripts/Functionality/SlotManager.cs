@@ -13,36 +13,24 @@ public class SlotManager : MonoBehaviour
     private RectTransform mainContainer_RT;
 
     [Header("Sprites")]
-    [SerializeField]
-    private Sprite[] myImages;  //images taken initially
+    [SerializeField] private Sprite[] myImages;
 
     [Header("Slot Images")]
-    [SerializeField]
-    private List<SlotImage> images;     //class to store total images
-    [SerializeField]
-    private List<SlotImage> Tempimages;     //class to store the result matrix
-
-    [Header("Slots Objects")]
-    [SerializeField]
-    private GameObject[] Slot_Objects;
-    [Header("Slots Elements")]
-    [SerializeField]
-    private LayoutElement[] Slot_Elements;
+    [SerializeField] private List<SlotImage> images;
+    [SerializeField] private List<SlotImage> Tempimages;
 
     [Header("Slots Transforms")]
-    [SerializeField]
-    private Transform[] Slot_Transform;
-
+    [SerializeField] private Transform[] Slot_Transform;
     private Dictionary<int, string> x_string = new Dictionary<int, string>();
     private Dictionary<int, string> y_string = new Dictionary<int, string>();
 
     [Header("Buttons")]
-    [SerializeField]
-    private Button SlotStart_Button;
-    [SerializeField]
-    private Button AutoSpin_Button;
+    [SerializeField] private Button SlotStart_Button;
+    [SerializeField] private Button AutoSpin_Button;
     [SerializeField] private Button AutoSpinStop_Button;
     [SerializeField] private Button Maxbet_button;
+    [SerializeField] private Button BetPlus_Button;
+    [SerializeField] private Button BetMinus_Button;
 
     [Header("Animated Sprites")]
     [SerializeField]
@@ -68,61 +56,34 @@ public class SlotManager : MonoBehaviour
     [SerializeField]
     private Sprite[] Scatter_Sprite;
 
-
+    [Header("Slot positions")]
+    private float tweenHeight = 0;
+    [SerializeField] private float reelHeight = 0;
+    [SerializeField] private float stopPosition = 0;  //calculate the height at which tweening is done
 
     [Header("Miscellaneous UI")]
-    [SerializeField]
-    private TMP_Text Balance_text;
-    [SerializeField]
-    private TMP_Text TotalBet_text;
-    [SerializeField]
-    private Button MaxBet_Button;
-    [SerializeField]
-    private Button BetPlus_Button;
-    [SerializeField]
-    private Button BetMinus_Button;
-    [SerializeField]
-    private TMP_Text TotalWin_text;
-    [SerializeField]
-    private TMP_Text BetPerLine_text;
-
+    [SerializeField] private TMP_Text Balance_text;
+    [SerializeField] private TMP_Text TotalBet_text;
+    [SerializeField] private Button MaxBet_Button;
+    [SerializeField] private TMP_Text TotalWin_text;
+    [SerializeField] private TMP_Text BetPerLine_text;
     [SerializeField] private TMP_Text Total_lines;
 
     [Header("Audio Management")]
     [SerializeField] private AudioController audioController;
 
 
-    [SerializeField]
-    private AudioSource _audioSource;
-    [SerializeField]
-    private AudioClip _spinSound;
-    [SerializeField]
-    private AudioClip _lossSound;
-    [SerializeField]
-    private AudioClip[] _winSounds;
+    [SerializeField] private GameObject Image_Prefab;    
 
-    int tweenHeight = 0;  //calculate the height at which tweening is done
-
-    [SerializeField]
-    private GameObject Image_Prefab;    //icons prefab
-
-    [SerializeField]
-    private PayoutCalculation PayCalculator;
+    [SerializeField] private PayoutCalculation PayCalculator;
 
     private List<Tweener> alltweens = new List<Tweener>();
 
     private Tweener WinTween = null;
 
-    [SerializeField]
-    private List<ImageAnimation> TempList;  //stores the sprites whose animation is running at present 
+    [SerializeField] private List<ImageAnimation> TempList;  
 
-    [SerializeField]
-    private int IconSizeFactor = 100;       //set this parameter according to the size of the icon and spacing
-
-    private int numberOfSlots = 5;          //number of columns
-
-    [SerializeField]
-    int verticalVisibility = 3;
+    [SerializeField] private int IconSizeFactor = 100;
 
     [SerializeField] private SocketIOManager SocketManager;
     [SerializeField] private UIManager uiManager;
@@ -131,8 +92,7 @@ public class SlotManager : MonoBehaviour
     private Coroutine tweenroutine = null;
     private bool IsAutoSpin = false;
     private bool IsSpinning = false;
-    [SerializeField]
-    private int spacefactor;
+    [SerializeField] private int spacefactor;
 
     private int BetCounter = 0;
     private int LineCounter = 0;
@@ -145,27 +105,54 @@ public class SlotManager : MonoBehaviour
 
     private void Start()
     {
-        IsAutoSpin = false;
-        if (SlotStart_Button) SlotStart_Button.onClick.RemoveAllListeners();
-        if (SlotStart_Button) SlotStart_Button.onClick.AddListener(delegate { StartSlots(); });
+
+        SetButton(SlotStart_Button,() => StartSlots());
+        SetButton(AutoSpin_Button,() => AutoSpin());
+        SetButton(AutoSpinStop_Button, StopAutoSpin);
+        SetButton(BetPlus_Button, () => ChangeBet(true));
+        SetButton(BetMinus_Button, () => ChangeBet(false));
+        SetButton(MaxBet_Button, MaxBet);
+
+        // if (SlotStart_Button)
+        // {
+        //     SlotStart_Button.onClick.RemoveAllListeners();
+        //     SlotStart_Button.onClick.AddListener(delegate { StartSlots(); });
+        // }
+
+        // if (AutoSpin_Button)
+        // {
+        //     AutoSpin_Button.onClick.RemoveAllListeners();
+        //     AutoSpin_Button.onClick.AddListener(AutoSpin);
+        // }
+
+        // if(AutoSpinStop_Button){
+        // AutoSpinStop_Button.onClick.RemoveAllListeners();
+        // AutoSpinStop_Button.onClick.AddListener(StopAutoSpin);
+        // }
 
 
-        if (AutoSpin_Button) AutoSpin_Button.onClick.RemoveAllListeners();
-        if (AutoSpin_Button) AutoSpin_Button.onClick.AddListener(AutoSpin);
+            
 
-        if (AutoSpinStop_Button) AutoSpinStop_Button.onClick.RemoveAllListeners();
-        if (AutoSpinStop_Button) AutoSpinStop_Button.onClick.AddListener(StopAutoSpin);
 
-        if (BetPlus_Button) BetPlus_Button.onClick.RemoveAllListeners();
-        if (BetPlus_Button) BetPlus_Button.onClick.AddListener(delegate { ChangeBet(true); });
-        if (BetMinus_Button) BetMinus_Button.onClick.RemoveAllListeners();
-        if (BetMinus_Button) BetMinus_Button.onClick.AddListener(delegate { ChangeBet(false); });
+        // if (BetPlus_Button) BetPlus_Button.onClick.RemoveAllListeners();
+        // if (BetPlus_Button) BetPlus_Button.onClick.AddListener(delegate { ChangeBet(true); });
+        // if (BetMinus_Button) BetMinus_Button.onClick.RemoveAllListeners();
+        // if (BetMinus_Button) BetMinus_Button.onClick.AddListener(delegate { ChangeBet(false); });
 
-        if (MaxBet_Button) MaxBet_Button.onClick.RemoveAllListeners();
-        if (MaxBet_Button) MaxBet_Button.onClick.AddListener(MaxBet);
-        tweenHeight = (896) +(0);
+        // if (MaxBet_Button) MaxBet_Button.onClick.RemoveAllListeners();
+        // if (MaxBet_Button) MaxBet_Button.onClick.AddListener(MaxBet);
+
+
+        tweenHeight = reelHeight + stopPosition;
     }
 
+    void SetButton(Button button, Action action){
+        if (button)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(()=>action());
+        }
+    }
     private void AutoSpin()
     {
         if (!IsAutoSpin)
@@ -200,7 +187,6 @@ public class SlotManager : MonoBehaviour
         {
             StartSlots(IsAutoSpin);
             yield return tweenroutine;
-            yield return new WaitForSeconds(2f);
         }
     }
 
@@ -218,23 +204,6 @@ public class SlotManager : MonoBehaviour
         }
     }
 
-    void OnBetOne(bool IncDec)
-    {
-        if (audioController) audioController.PlayButtonAudio();
-
-        if (BetCounter < SocketManager.initialData.Bets.Count - 1)
-        {
-            BetCounter++;
-        }
-        else
-        {
-            BetCounter = 0;
-        }
-        Debug.Log("Index:" + BetCounter);
-
-        if (TotalBet_text) TotalBet_text.text = SocketManager.initialData.Bets[BetCounter].ToString();
-        if (BetPerLine_text) BetPerLine_text.text = SocketManager.initialData.Bets[BetCounter].ToString();
-    }
 
     private void ChangeBet(bool IncDec)
     {
@@ -320,7 +289,7 @@ public class SlotManager : MonoBehaviour
         if (BetPerLine_text) BetPerLine_text.text = SocketManager.initialData.Bets[BetCounter].ToString();
         if (TotalWin_text) TotalWin_text.text = SocketManager.playerdata.currentWining.ToString("f2");
         if (Balance_text) Balance_text.text = SocketManager.playerdata.Balance.ToString("f2");
-        if(Total_lines) Total_lines.text=SocketManager.initialData.Lines.Count.ToString();
+        if (Total_lines) Total_lines.text = SocketManager.initialData.Lines.Count.ToString();
         currentBalance = SocketManager.playerdata.Balance;
         currentTotalBet = SocketManager.initialData.Bets[BetCounter] * SocketManager.initialData.Lines.Count;
         CompareBalance();
@@ -431,8 +400,8 @@ public class SlotManager : MonoBehaviour
                 tweenroutine = null;
                 AutoSpinRoutine = null;
             }
-
         }
+
         if (TempList.Count > 0)
         {
             StopGameAnimation();
@@ -499,7 +468,8 @@ public class SlotManager : MonoBehaviour
         if (currentBalance < currentTotalBet)
         {
             CompareBalance();
-            if (IsAutoSpin) {
+            if (IsAutoSpin)
+            {
                 StopAutoSpin();
                 yield return new WaitForSeconds(1f);
             }
@@ -533,7 +503,7 @@ public class SlotManager : MonoBehaviour
 
         for (int i = 0; i < Slot_Transform.Length; i++)
         {
-            yield return StopTweening(5, Slot_Transform[i], i);
+            yield return StopTweening(Slot_Transform[i], i);
         }
 
         yield return new WaitForSeconds(0.5f);
@@ -611,9 +581,9 @@ public class SlotManager : MonoBehaviour
 
     private void OnApplicationFocus(bool focus)
     {
-        if(focus)
+        if (focus)
         {
-            if(!IsSpinning)
+            if (!IsSpinning)
             {
                 if (audioController) audioController.StopWLAaudio();
             }
@@ -734,14 +704,12 @@ public class SlotManager : MonoBehaviour
         alltweens.Add(tweener);
     }
 
-    private IEnumerator StopTweening(int reqpos, Transform slotTransform, int index)
+    private IEnumerator StopTweening(Transform slotTransform, int index)
     {
-        // int tweenpos = (reqpos * (IconSizeFactor + spacefactor)) - (IconSizeFactor + (2 * spacefactor));
-        int[] finalPos=new int[3]{ -270,-370,-170};
         alltweens[index].Pause();
         slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
-        alltweens[index] = slotTransform.DOLocalMoveY(-255, 0.5f); // slot initial pos - iconsizefactor - spacing
-        yield return new WaitForSeconds(0.5f);
+        alltweens[index] = slotTransform.DOLocalMoveY(stopPosition, 0.3f);
+        yield return new WaitForSeconds(1f);
     }
 
 

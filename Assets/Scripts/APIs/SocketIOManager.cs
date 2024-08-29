@@ -313,7 +313,7 @@ public class SocketIOManager : MonoBehaviour
         Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
     }
 
-    internal void AccumulateResult(double currBet)
+    private void AccumulateResult(double currBet)
     {
         isResultdone = false;
         MessageData message = new MessageData();
@@ -326,7 +326,6 @@ public class SocketIOManager : MonoBehaviour
         string json = JsonUtility.ToJson(message);
         SendDataWithNamespace("message", json);
     }
-
 
     private void SendDataWithNamespace(string eventName, string json = null)
     {
@@ -364,14 +363,11 @@ public class SocketIOManager : MonoBehaviour
 
         foreach (List<int> innerList in listOfLists)
         {
-            // Convert each integer in the inner list to string
             List<string> stringList = new List<string>();
             foreach (int number in innerList)
             {
                 stringList.Add(number.ToString());
             }
-
-            // Join the string representation of integers with ","
             string joinedString = string.Join(",", stringList.ToArray()).Trim();
             resultList.Add(joinedString);
         }
