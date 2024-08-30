@@ -374,7 +374,7 @@ public class UIManager : MonoBehaviour
         //if (Privacy_Button) Privacy_Button.onClick.AddListener(delegate { UrlButtons(PrivacyUrl); });
 
         //StartCoroutine(DownloadImage(AbtImgUrl));
-        PopulateSymbolsPayout(symbolsText);
+        // PopulateSymbolsPayout(symbolsText);
         //PopulateSpecialSymbols(Specialsymbols);
     }
 

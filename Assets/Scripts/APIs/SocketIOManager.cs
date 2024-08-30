@@ -46,23 +46,26 @@ public class SocketIOManager : MonoBehaviour
     protected string gameID = "SL-GF";
 
     internal bool isLoading;
-    internal bool SetInit=false;
+    internal bool SetInit = false;
     private const int maxReconnectionAttempts = 6;
     private readonly TimeSpan reconnectionDelay = TimeSpan.FromSeconds(10);
 
     private void Awake()
     {
         isLoading = true;
-        SetInit=false;
+        SetInit = false;
         // Debug.unityLogger.logEnabled = false;
     }
 
     private void Start()
     {
         //OpenWebsocket();
-        OpenSocket();
+        // OpenSocket();
     }
 
+
+
+    
     void ReceiveAuthToken(string jsonData)
     {
         Debug.Log("Received data: " + jsonData);
@@ -71,7 +74,6 @@ public class SocketIOManager : MonoBehaviour
         var data = JsonUtility.FromJson<AuthTokenData>(jsonData);
         SocketURI = data.socketURL;
         myAuth = data.cookie;
-
         // Proceed with connecting to the server using myAuth and socketURL
     }
 
@@ -307,13 +309,13 @@ public class SocketIOManager : MonoBehaviour
             slotManager.FetchLines(LineIds[i], i);
         }
 
-        slotManager.SetInitialUI();
+        // slotManager.SetInitialUI();
         isLoading = false;
 
         Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
     }
 
-    private void AccumulateResult(double currBet)
+    internal void AccumulateResult(double currBet)
     {
         isResultdone = false;
         MessageData message = new MessageData();

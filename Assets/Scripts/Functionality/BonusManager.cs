@@ -2,71 +2,65 @@
 using UnityEngine;
 using DG.Tweening;
 using System.Collections;
+using TMPro;
+using System.Collections.Generic;
 
 public class BonusManager : MonoBehaviour
 {
 
 
+    [SerializeField] private GameObject bonusPanel;
     [SerializeField] private Transform rotator;
-    [SerializeField] private Tween rotationTween;
+
+    [SerializeField] private TMP_Text winText;
+    [SerializeField] private GameObject winPopup;
+    [SerializeField] private Tween rotationTween = null;
 
     [SerializeField] internal int stopIndex;
+    [SerializeField] int segmentCount;
+    private float degreesPerSegment;
+    private float offSet;
+
+    [SerializeField] private TMP_Text[] valueTextList;
+    [SerializeField] private List<int> values;
+
+    [SerializeField] private GameObject lightOff;
     void Start()
     {
+        degreesPerSegment = 360f / segmentCount;
+        offSet = degreesPerSegment / 2;
 
-        Rotate();
+        // OnSpinStart();
     }
 
     void Update()
     {
 
-        if (Input.GetMouseButtonDown(0))
+        // if (Input.GetMouseButtonDown(0))
+        // {
+        //     StopAtIndex(stopIndex);
+        // }
+    }
+
+    internal void OnSpinStart()
+    {
+
+        for (int i = 0; i < valueTextList.Length; i++)
         {
-            // RotateToSegment(stopIndex);
-            // StopAtInitialPosition();
-            // StopRotate(stopIndex);
-            // StopRotate1(stopIndex);
-            StopAtIndex(stopIndex);
+            int value = Random.Range(0, 200);
+            values.Add(value);
+            valueTextList[i].text = value.ToString();
         }
+        bonusPanel.SetActive(true);
+
+        rotationTween ??= rotator.DOLocalRotate(new Vector3(0, 0, -360), 2.5f, RotateMode.LocalAxisAdd)
+              .SetLoops(-1, LoopType.Incremental)
+              .SetEase(Ease.Linear);
+
+        InvokeRepeating(nameof(LightAnimation), 0,0.25f);
     }
 
-    void Rotate()
-    {
 
-        rotationTween = rotator.DOLocalRotate(new Vector3(0, 0, 360), 1f, RotateMode.LocalAxisAdd)
-          .SetLoops(-1, LoopType.Incremental) // Set to loop indefinitely
-          .SetEase(Ease.Linear);
-    }
-
-    void StopRotate(int index)
-    {
-        rotationTween.Kill();
-        int indexc = index;
-        rotationTween.OnStepComplete(() =>
-        {
-            rotationTween.Kill();
-        });
-        float targetAngle = (360 / 8) * index;
-        float rotationAmount = (targetAngle) % 360f;
-
-        //    if(targetAngle>180){
-        //         indexc=Mathf.Abs((3-index )*45);
-        //         roatator.localRotation=Quaternion.Euler(0,0,indexc );
-        //    }else{
-        //     roatator.localRotation=Quaternion.Euler(0,0,0);
-
-        //    }
-
-
-        //     float currentAngle = roatator.eulerAngles.z;
-
-
-
-        //     float time=Mathf.Abs((currentAngle-targetAngle)/360);
-        //     rotationTween = roatator.DOLocalRotate(new Vector3(0, 0, rotationAmount-22.5f), time).SetEase(Ease.InOutQuad)
-        //                          .OnComplete(() => Debug.Log($"Stopped at segment {index} at angle {roatator.eulerAngles.z}"));
-
-    }
     public void StopAtIndex(int targetIndex)
     {
         StartCoroutine(WaitForTargetIndex(targetIndex));
@@ -74,55 +68,70 @@ public class BonusManager : MonoBehaviour
 
     private IEnumerator WaitForTargetIndex(int targetIndex)
     {
-        float degreesPerSegment = 360f / 8;
-        float targetAngle = (targetIndex * degreesPerSegment);
-        float threshold = 5f; // Angle threshold for stopping
+        Debug.Log("started stopping");
+        if (rotationTween == null)
+            yield break;
+
+        winText.text = values[targetIndex].ToString();
+        rotationTween.timeScale = 0.5f;
+        float targetAngle = targetIndex * degreesPerSegment;
+        float threshold = 5f;
+        bool hasCrossedTarget = false;
+        float distanceToTarget = 0;
+        float currentAngle = 0;
 
         while (true)
         {
-            float currentAngle = rotator.localEulerAngles.z;
-            currentAngle = currentAngle % 360f;
+            currentAngle = rotator.localEulerAngles.z % 360f;
+            if (currentAngle < 0) currentAngle += 360f;
+            distanceToTarget = Mathf.Abs(currentAngle - targetAngle);
 
-            float distanceToTarget = Mathf.Abs(currentAngle - targetAngle);
-
-            // If within threshold, stop the rotation
-            if (distanceToTarget < threshold)
+            if (targetAngle == 0)
             {
-                rotationTween.Kill(); // Stop the rotation
-                rotator.DOLocalRotate(new Vector3(0,0,targetAngle-22.5f),0.25f).SetEase(Ease.Linear);
-                // rotator.localRotation = Quaternion.Euler(0, 0, targetAngle); // Snap to the exact target angle
-                Debug.Log($"Smoothly stopped at segment {targetIndex} with angle {targetAngle}");
+                hasCrossedTarget = currentAngle > 180;
+            }
+            else
+            {
+                hasCrossedTarget = (currentAngle > targetAngle && currentAngle - targetAngle < 180) || (currentAngle < targetAngle && targetAngle - currentAngle > 180);
+            }
+
+            if (distanceToTarget < threshold && !hasCrossedTarget)
+            {
+                rotationTween.Kill();
+                Debug.Log(targetAngle);
+                rotator.DOLocalRotate(new Vector3(0, 0, targetAngle - offSet), 0.25f).SetEase(Ease.Linear);
+                CancelInvoke(nameof(LightAnimation));
+                lightOff.SetActive(false);
+                yield return new WaitForSeconds(1.5f);
+                OnSpinEnd();
                 break;
             }
-            yield return null; 
+            yield return null;
         }
     }
 
-    public void StopRotate1(int index)
+
+
+    void OnSpinEnd()
     {
-        // Pause the current rotation
-        rotationTween.OnStepComplete(() =>
+        winPopup.transform.localScale = Vector3.zero;
+        winPopup.SetActive(true);
+        winPopup.transform.DOScale(Vector3.one, 2f).SetEase(Ease.OutElastic).OnComplete(() =>
         {
-
-            rotator.localRotation = Quaternion.Euler(0, 0, -22.5f);
-            rotationTween.Pause();
-
+            winPopup.SetActive(false);
+            bonusPanel.SetActive(false);
+            winText.text="";
+            for (int i = 0; i < valueTextList.Length; i++)
+            {
+                int value = Random.Range(0, 200);
+                values.Add(value);
+                valueTextList[i].text = "";
+            }
 
         });
-        // The target angle is always 0 degrees
-        float targetAngle = 0f;
-
-        // Calculate the current angle
-        float currentAngle = rotator.localEulerAngles.z;
-
-        // Calculate the rotation needed to reach 0 degrees in an anti-clockwise direction
-        float rotationAmount = (currentAngle - targetAngle + 360) % 360;
-
-        // Start rotating toward the target angle anti-clockwise
-        // rotationTween = roatator.DOLocalRotate(new Vector3(0, 0, currentAngle - rotationAmount), rotationAmount / 360f)
-        //                         .SetEase(Ease.InOutQuad)
-        //                         .OnComplete(() => Debug.Log($"Stopped at segment {index} at angle {roatator.eulerAngles.z}"));
     }
 
-
+    void LightAnimation(){
+        lightOff.SetActive(!lightOff.activeSelf);
+    }
 }
