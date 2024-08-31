@@ -121,6 +121,7 @@ public class BonusManager : MonoBehaviour
             winPopup.SetActive(false);
             bonusPanel.SetActive(false);
             winText.text="";
+            lightOff.SetActive(true);
             for (int i = 0; i < valueTextList.Length; i++)
             {
                 int value = Random.Range(0, 200);

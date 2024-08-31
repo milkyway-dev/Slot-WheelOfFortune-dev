@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using System.Linq;
 using TMPro;
 using System;
-
+using UnityEngine.UI.Extensions;
 public class SlotManager : MonoBehaviour
 {
     [SerializeField]
@@ -90,6 +90,13 @@ public class SlotManager : MonoBehaviour
 
     [SerializeField] private List<int> LineId;
     [SerializeField] private List<string> points_AnimString;
+
+    [Header("payline")]
+    [SerializeField] private Vector2 InitialLinePosition = new Vector2(-315, 100);
+    [SerializeField] private int x_Distance;
+    [SerializeField] private int y_Distance;
+    [SerializeField] private Transform LineContainer;
+    [SerializeField] private GameObject Line_Prefab;
     private void Start()
     {
         SetButton(SlotStart_Button, () => StartSlots());
@@ -262,61 +269,61 @@ public class SlotManager : MonoBehaviour
         animScript.textureArray.TrimExcess();
         switch (val)
         {
-            case 6:
-                for (int i = 0; i < bar_Sprite.Length; i++)
-                {
-                    animScript.textureArray.Add(bar_Sprite[i]);
-                }
-                animScript.AnimationSpeed = 30f;
-                break;
             case 8:
+                for (int i = 0; i < wheelofFortune_Sprite.Length; i++)
+                {
+                    animScript.textureArray.Add(wheelofFortune_Sprite[i]);
+                }
+                animScript.AnimationSpeed = wheelofFortune_Sprite.Length;
+                break;
+            case 1:
                 for (int i = 0; i < seven_Sprite.Length; i++)
                 {
                     animScript.textureArray.Add(seven_Sprite[i]);
                 }
-                animScript.AnimationSpeed = 30f;
+                animScript.AnimationSpeed = seven_Sprite.Length;
                 break;
-            case 7:
+            case 2:
                 for (int i = 0; i < doubleSeven_Sprite.Length; i++)
                 {
                     animScript.textureArray.Add(doubleSeven_Sprite[i]);
                 }
-                animScript.AnimationSpeed = 30f;
+                animScript.AnimationSpeed = doubleSeven_Sprite.Length;
                 break;
             case 5:
                 for (int i = 0; i < spin_Sprite.Length; i++)
                 {
                     animScript.textureArray.Add(spin_Sprite[i]);
                 }
-                animScript.AnimationSpeed = 12f;
+                animScript.AnimationSpeed = spin_Sprite.Length;
                 break;
             case 4:
-                for (int i = 0; i < wheelofFortune_Sprite.Length; i++)
+                for (int i = 0; i < fiveBar_Sprite.Length; i++)
                 {
-                    animScript.textureArray.Add(wheelofFortune_Sprite[i]);
+                    animScript.textureArray.Add(fiveBar_Sprite[i]);
                 }
-                animScript.AnimationSpeed = 12f;
+                animScript.AnimationSpeed = fiveBar_Sprite.Length;
                 break;
-            case 3:
+            case 6:
                 for (int i = 0; i < goldSpin_Sprite.Length; i++)
                 {
                     animScript.textureArray.Add(goldSpin_Sprite[i]);
                 }
-                animScript.AnimationSpeed = 12f;
+                animScript.AnimationSpeed = goldSpin_Sprite.Length;
                 break;
-            case 2:
+            case 3:
                 for (int i = 0; i < bar_Sprite.Length; i++)
                 {
                     animScript.textureArray.Add(bar_Sprite[i]);
                 }
-                animScript.AnimationSpeed = 12f;
+                animScript.AnimationSpeed = bar_Sprite.Length;
                 break;
-            case 1:
+            case 7:
                 for (int i = 0; i < trippleSeven_Sprite.Length; i++)
                 {
                     animScript.textureArray.Add(trippleSeven_Sprite[i]);
                 }
-                animScript.AnimationSpeed = 12f;
+                animScript.AnimationSpeed = trippleSeven_Sprite.Length;
                 break;
             case 0:
                 break;
@@ -585,20 +592,14 @@ public class SlotManager : MonoBehaviour
     {
         int i = animObjects.transform.childCount;
 
-        if (i > 0)
-        {
+
             ImageAnimation temp = animObjects.GetComponent<ImageAnimation>();
-            animObjects.transform.GetChild(0).gameObject.SetActive(true);
+            // animObjects.transform.GetChild(0).gameObject.SetActive(true);
 
             temp.StartAnimation();
 
             TempList.Add(temp);
-        }
-        else
-        {
-            animObjects.GetComponent<ImageAnimation>().StartAnimation();
 
-        }
     }
 
     //stop the icons animation
@@ -617,18 +618,18 @@ public class SlotManager : MonoBehaviour
     //generate the payout lines generated 
     private void CheckPayoutLineBackend(List<int> LineId, List<string> points_AnimString, double jackpot = 0)
     {
-        List<int> y_points = null;
+        List<int> y_points = new List<int>(){2,2,2};
         List<int> points_anim = null;
         if (LineId.Count > 0 || points_AnimString.Count > 0)
         {
             WinningsAnim(true);
             if (audioController) audioController.PlayWLAudio("win");
 
-            // for (int i = 0; i < LineId.Count; i++)
-            // {
-            //     y_points = y_string[LineId[i] + 1]?.Split(',')?.Select(Int32.Parse)?.ToList();
-            //     PayCalculator.GeneratePayoutLinesBackend(y_points, y_points.Count);
-            // }
+            for (int i = 0; i < LineId.Count; i++)
+            {
+                // y_points = y_string[LineId[i] + 1]?.Split(',')?.Select(Int32.Parse)?.ToList();
+                GeneratePayline(y_points, 3);
+            }
 
             for (int i = 0; i < points_AnimString.Count; i++)
             {
@@ -654,11 +655,28 @@ public class SlotManager : MonoBehaviour
         //}
     }
 
+    private void GeneratePayline(List<int> y_index, int Count)
+    {
+        GameObject MyLineObj = Instantiate(Line_Prefab, LineContainer);
+        MyLineObj.transform.localPosition = new Vector2(InitialLinePosition.x, InitialLinePosition.y);
+        UILineRenderer MyLine = MyLineObj.GetComponent<UILineRenderer>();
+        List<Vector2> pointlist = new List<Vector2>();
+        for (int i = 0; i < Count; i++)
+        {
+            pointlist.Add(new Vector2(i * x_Distance, y_index[i] * -y_Distance));
+        }
+
+        MyLine.Points = pointlist.ToArray();
+    }
+
+
+
+
     #region TweeningCode
     private void InitializeTweening(Transform slotTransform)
     {
         // slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
-        Tweener tweener = slotTransform.DOLocalMoveY(-tweenHeight, 0.15f).SetLoops(-1).SetEase(Ease.Linear);
+        Tweener tweener = slotTransform.DOLocalMoveY(-tweenHeight, 0.1f).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
         tweener.Play();
         alltweens.Add(tweener);
     }
@@ -667,8 +685,8 @@ public class SlotManager : MonoBehaviour
     {
         alltweens[index].Pause();
         slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
-        alltweens[index] = slotTransform.DOLocalMoveY(stopPosition, 0.3f);
-        yield return new WaitForSeconds(1f);
+        alltweens[index] = slotTransform.DOLocalMoveY(stopPosition, 0.3f).SetEase(Ease.OutElastic);
+        yield return new WaitForSeconds(0.2f);
     }
 
 

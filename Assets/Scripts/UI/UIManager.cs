@@ -11,38 +11,15 @@ using UnityEngine.Networking;
 public class UIManager : MonoBehaviour
 {
 
-    //[Header("Menu UI")]
-    //[SerializeField]
-    //private Button Menu_Button;
-    //[SerializeField]
-    //private GameObject Menu_Object;
-    //[SerializeField]
-    //private RectTransform Menu_RT;
 
-    [SerializeField]
-    private Button About_Button;
-    [SerializeField]
-    private GameObject About_Object;
-    [SerializeField]
-    private RectTransform About_RT;
 
-    //[Header("Settings UI")]
+    [SerializeField] private Button About_Button;
+    [SerializeField] private GameObject About_Object;
+    [SerializeField] private RectTransform About_RT;
 
-    //[SerializeField]
-    //private GameObject Settings_Object;
-    //[SerializeField]
-    //private RectTransform Settings_RT;
-    //[SerializeField]
-    //private Button Terms_Button;
-    //[SerializeField]
-    //private Button Privacy_Button;
-
-    [SerializeField]
-    private Button Exit_Button;
-    [SerializeField]
-    private GameObject Exit_Object;
-    [SerializeField]
-    private RectTransform Exit_RT;
+    [SerializeField] private Button Exit_Button;
+    [SerializeField] private GameObject Exit_Object;
+    [SerializeField] private RectTransform Exit_RT;
 
     //[SerializeField]
     //private Button Paytable_Button;
@@ -56,20 +33,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject MainPopup_Object;
 
     [Header("About Popup")]
-    [SerializeField]
-    private GameObject AboutPopup_Object;
-    [SerializeField]
-    private Button AboutExit_Button;
-    //[SerializeField]
-    //private Image AboutLogo_Image;
-    //[SerializeField]
-    //private Button Support_Button;
-
-    //[Header("Paytable Popup")]
-    //[SerializeField]
-    //private GameObject PaytablePopup_Object;
-    //[SerializeField]
-    //private Button PaytableExit_Button;
+    [SerializeField] private GameObject AboutPopup_Object;
+    [SerializeField] private Button AboutExit_Button;
     [Header("Paytable Texts")]
     [SerializeField] private TMP_Text[] SymbolsText;
     [SerializeField] private TMP_Text Scatter_Text;
@@ -85,18 +50,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button MusicOff_Button;
 
     [Header("all Win Popup")]
-    [SerializeField]
-    private Sprite BigWin_Sprite;
-    [SerializeField]
-    private Sprite HugeWin_Sprite;
-    [SerializeField]
-    private Sprite MegaWin_Sprite;
-    [SerializeField]
-    private Image Win_Image;
-    [SerializeField]
-    private GameObject WinPopup_Object;
-    [SerializeField]
-    private TMP_Text Win_Text;
+    [SerializeField] private Sprite BigWin_Sprite;
+    [SerializeField] private Sprite HugeWin_Sprite;
+    [SerializeField] private Sprite MegaWin_Sprite;
+    [SerializeField] private Image Win_Image;
+    [SerializeField] private GameObject WinPopup_Object;
+    [SerializeField] private TMP_Text Win_Text;
 
 
     [Header("jackpot Win Popup")]
@@ -153,6 +112,7 @@ public class UIManager : MonoBehaviour
     private bool isSound = true;
     private bool isExit = false;
 
+    public GameObject ActivePopup=null;
 
     private void Awake()
     {
@@ -164,12 +124,12 @@ public class UIManager : MonoBehaviour
     {
 
         SetButton(yes_Button, CallOnExitFunction);
-        SetButton(no_Button, () => ClosePopup(quitPopupObject));
+        SetButton(no_Button, () => ClosePopup());
         SetButton(GameExit_Button, () => OpenPopup(quitPopupObject));
         SetButton(About_Button, () => OpenPopup(AboutPopup_Object));
-        SetButton(AboutExit_Button, () => ClosePopup(AboutPopup_Object));
+        SetButton(AboutExit_Button, () => ClosePopup());
         SetButton(Settings_Button, () => OpenPopup(SettingsPopup_Object));
-        SetButton(SettingsExit_Button, () => ClosePopup(SettingsPopup_Object));
+        SetButton(SettingsExit_Button, () => ClosePopup());
         SetButton(MusicOn_Button, ToggleMusic);
         SetButton(MusicOff_Button, ToggleMusic);
         SetButton(SoundOn_Button, ToggleSound);
@@ -177,63 +137,8 @@ public class UIManager : MonoBehaviour
         SetButton(LeftBtn, () => Slide(-1));
         SetButton(RightBtn, () => Slide(1));
         SetButton(CloseDisconnect_Button, CallOnExitFunction);
-        SetButton(Close_Button, () => ClosePopup(LowBalancePopup_Object));
+        SetButton(Close_Button, () => ClosePopup());
         SetButton(QuitSplash_button, () => OpenPopup(quitPopupObject));
-
-        // if (yes_Button) yes_Button.onClick.RemoveAllListeners();
-        // if (yes_Button) yes_Button.onClick.AddListener(CallOnExitFunction);
-
-        // if (no_Button) no_Button.onClick.RemoveAllListeners();
-        // if (no_Button) no_Button.onClick.AddListener(delegate { ClosePopup(quitPopupObject); });
-
-        // if (GameExit_Button) GameExit_Button.onClick.RemoveAllListeners();
-        // if (GameExit_Button) GameExit_Button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
-
-        // if (About_Button) About_Button.onClick.RemoveAllListeners();
-        // if (About_Button) About_Button.onClick.AddListener(delegate { OpenPopup(AboutPopup_Object); });
-
-        // if (AboutExit_Button) AboutExit_Button.onClick.RemoveAllListeners();
-        // if (AboutExit_Button) AboutExit_Button.onClick.AddListener(delegate { ClosePopup(AboutPopup_Object); });
-
-        // if (Settings_Button) Settings_Button.onClick.RemoveAllListeners();
-        // if (Settings_Button) Settings_Button.onClick.AddListener(delegate { OpenPopup(SettingsPopup_Object); });
-
-        // if (SettingsExit_Button) SettingsExit_Button.onClick.RemoveAllListeners();
-        // if (SettingsExit_Button) SettingsExit_Button.onClick.AddListener(delegate { ClosePopup(SettingsPopup_Object); });
-
-        // if (MusicOn_Button) MusicOn_Button.onClick.RemoveAllListeners();
-        // if (MusicOn_Button) MusicOn_Button.onClick.AddListener(ToggleMusic);
-
-        // if (MusicOff_Button) MusicOff_Button.onClick.RemoveAllListeners();
-        // if (MusicOff_Button) MusicOff_Button.onClick.AddListener(ToggleMusic);
-
-        // if (SoundOn_Button) SoundOn_Button.onClick.RemoveAllListeners();
-        // if (SoundOn_Button) SoundOn_Button.onClick.AddListener(ToggleSound);
-
-        // if (SoundOff_Button) SoundOff_Button.onClick.RemoveAllListeners();
-        // if (SoundOff_Button) SoundOff_Button.onClick.AddListener(ToggleSound);
-
-
-        // paytableList[CurrentIndex = 0].SetActive(true);
-
-        // if (LeftBtn) LeftBtn.onClick.RemoveAllListeners();
-        // if (LeftBtn) LeftBtn.onClick.AddListener(delegate { Slide(-1); });
-
-        // if (RightBtn) RightBtn.onClick.RemoveAllListeners();
-        // if (RightBtn) RightBtn.onClick.AddListener(delegate { Slide(+1); });
-
-
-        // if (CloseDisconnect_Button) CloseDisconnect_Button.onClick.RemoveAllListeners();
-        // if (CloseDisconnect_Button) CloseDisconnect_Button.onClick.AddListener(CallOnExitFunction);
-
-        // if (Close_Button) Close_Button.onClick.AddListener(delegate { ClosePopup(LowBalancePopup_Object); });
-
-
-
-
-        // if (QuitSplash_button) QuitSplash_button.onClick.RemoveAllListeners();
-        // if (QuitSplash_button) QuitSplash_button.onClick.AddListener(delegate { OpenPopup(quitPopupObject); });
-
         isMusic = false;
         isSound = false;
         ToggleMusic();
@@ -324,6 +229,7 @@ public class UIManager : MonoBehaviour
         {
             if (WinPopup_Object) WinPopup_Object.SetActive(true);
 
+
         }
 
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
@@ -345,12 +251,12 @@ public class UIManager : MonoBehaviour
         {
             if (jackpot)
             {
-                ClosePopup(jackpot_Object);
+                ClosePopup();
 
             }
             else
             {
-                ClosePopup(WinPopup_Object);
+                ClosePopup();
             }
             slotManager.CheckPopups = false;
         });
@@ -496,13 +402,14 @@ public class UIManager : MonoBehaviour
         if(audioController) audioController.PlayButtonAudio();
         if (Popup) Popup.SetActive(true);
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
+        ActivePopup=Popup;
         paytableList[CurrentIndex = 0].SetActive(true);
     }
 
-    private void ClosePopup(GameObject Popup)
+    private void ClosePopup()
     {
         if(audioController) audioController.PlayButtonAudio();
-        if (Popup) Popup.SetActive(false);
+        if (ActivePopup) ActivePopup.SetActive(false);
         if (!DisconnectPopup_Object.activeSelf)
         {
             if (MainPopup_Object) MainPopup_Object.SetActive(false);
