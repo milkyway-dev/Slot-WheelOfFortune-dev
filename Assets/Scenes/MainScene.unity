@@ -1004,7 +1004,7 @@ GameObject:
   - component: {fileID: 108837610}
   - component: {fileID: 108837612}
   m_Layer: 5
-  m_Name: AutoStop_Button (1)
+  m_Name: AutoStop_Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1086,7 +1086,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 2
+  m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -1110,19 +1110,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 108837610}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
-        m_MethodName: Play
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &119629554
 GameObject:
   m_ObjectHideFlags: 0
@@ -6608,7 +6596,7 @@ GameObject:
   - component: {fileID: 567733207}
   - component: {fileID: 567733206}
   m_Layer: 5
-  m_Name: StartSlot_Button
+  m_Name: Spin_Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6676,19 +6664,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 567733207}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UnityEngine.AudioSource, UnityEngine
-        m_MethodName: Play
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &567733207
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15251,6 +15227,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1276918727}
   m_CullTransparentMesh: 1
+--- !u!1 &1278492943
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1278492945}
+  - component: {fileID: 1278492944}
+  m_Layer: 0
+  m_Name: GameManger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1278492944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1278492943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 730c7405d682441dbab389ffa49289fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  slotManager: {fileID: 2046803210}
+  SlotStart_Button: {fileID: 567733206}
+  AutoSpin_Button: {fileID: 271841706}
+  AutoSpinStop_Button: {fileID: 108837612}
+  Maxbet_button: {fileID: 0}
+  BetPlus_Button: {fileID: 0}
+  BetMinus_Button: {fileID: 0}
+  IsSpinning: 0
+  IsAutoSpin: 0
+  LineId: 01000000
+  points_AnimString:
+  - 02,12,23
+--- !u!4 &1278492945
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1278492943}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.17773151, y: 1.3611112, z: 90}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1285718933
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25459,7 +25491,7 @@ GameObject:
   - component: {fileID: 8161384201886867057}
   - component: {fileID: 8161384201886867058}
   m_Layer: 0
-  m_Name: AudioController
+  m_Name: AudioManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25760,9 +25792,10 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 51930704}
   - {fileID: 1571308677}
-  - {fileID: 2046803209}
   - {fileID: 963807278}
   - {fileID: 377874624}
   - {fileID: 500036491}
+  - {fileID: 2046803209}
   - {fileID: 4326194446140345616}
   - {fileID: 804008366}
+  - {fileID: 1278492945}
