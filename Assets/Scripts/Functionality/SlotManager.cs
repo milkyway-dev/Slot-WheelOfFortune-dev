@@ -116,30 +116,24 @@ public class SlotManager : MonoBehaviour
         }
     }
 
-
-
-
-
-
-
-    private void ChangeBet(bool IncDec)
+    internal void UpdateBetText()
     {
         if (audioController) audioController.PlayButtonAudio();
 
-        if (IncDec)
-        {
-            if (BetCounter < 10)
-            {
-                BetCounter++;
-            }
-        }
-        else
-        {
-            if (BetCounter > 0)
-            {
-                BetCounter--;
-            }
-        }
+        // if (IncDec)
+        // {
+        //     if (BetCounter < 10)
+        //     {
+        //         BetCounter++;
+        //     }
+        // }
+        // else
+        // {
+        //     if (BetCounter > 0)
+        //     {
+        //         BetCounter--;
+        //     }
+        // }
 
         if (BetPerLine_text) BetPerLine_text.text = BetCounter.ToString();
         if (TotalBet_text) TotalBet_text.text = BetCounter.ToString();
@@ -418,7 +412,7 @@ public class SlotManager : MonoBehaviour
 
     internal void shuffleInitialMatrix()
     {
-        int randomIndex = UnityEngine.Random.Range(0, myImages.Length);
+        // int randomIndex = UnityEngine.Random.Range(1, myImages.Length);
         for (int i = 0; i < slotmatrix.Count; i++)
         {
 
@@ -426,16 +420,15 @@ public class SlotManager : MonoBehaviour
             for (int j = 0; j < slotmatrix[i].slotImages.Count; j++)
             {
 
-                slotmatrix[i].slotImages[j].sprite = myImages[randomIndex];
+                slotmatrix[i].slotImages[j].sprite = myImages[UnityEngine.Random.Range(0, myImages.Length)];
 
             }
-            int nextRandomIndex = 0;
+            // int nextRandomIndex = 0;
 
-            if (randomIndex == 0)
-                nextRandomIndex = UnityEngine.Random.Range(1, myImages.Length);
+            // if (randomIndex == 0)
+            //     nextRandomIndex = UnityEngine.Random.Range(1, myImages.Length);
 
-
-            randomIndex = nextRandomIndex;
+            // randomIndex = nextRandomIndex;
 
         }
     }

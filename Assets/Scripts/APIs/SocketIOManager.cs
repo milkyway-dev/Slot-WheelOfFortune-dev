@@ -274,14 +274,16 @@ public class SocketIOManager : MonoBehaviour
 
 
 
-            var message = resp["message"];
-            var gameData = message["GameData"];
+        var message = resp["message"];
+        var gameData = message["GameData"];
         socketModel.playerData = message["PlayerData"].ToObject<PlayerData>();
 
         if (messageId == "InitData")
         {
             socketModel.uIData = message["UIData"].ToObject<UIData>();
             socketModel.initGameData.Bets = gameData["Bets"].ToObject<List<double>>();
+            isLoading = false;
+            Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
         }
         else if (messageId == "ResultData")
         {
@@ -294,11 +296,9 @@ public class SocketIOManager : MonoBehaviour
             // socketModel.resultGameData.jackpot = gameData["jackpot"].ToObject<double>();
             // socketModel.resultGameData.isBonus = gameData["isBonus"].ToObject<bool>();
             // socketModel.resultGameData.BonusStopIndex = gameData["BonusStopIndex"].ToObject<double>();
-            print("UI datasdsd: " + JsonConvert.SerializeObject(socketModel.resultGameData.ResultReel));
+            print("result data: " + JsonConvert.SerializeObject(socketModel.resultGameData.ResultReel));
 
         }
-
-        print("player data in model: " + JsonConvert.SerializeObject(socketModel.playerData));
         // switch (id)
         // {
         //     case "InitData":

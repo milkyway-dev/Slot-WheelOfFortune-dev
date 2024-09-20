@@ -21,17 +21,19 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<int> LineId;
     [SerializeField] private List<string> points_AnimString;
 
+    private int BetCounter;
     void Start()
     {
         ErrorHandler.RunSafely(() =>
         {
+            socketManager.OpenSocket();
             SlotStart_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartSpin, OnError));
             AutoSpin_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartAutoSpin, OnError));
             AutoSpinStop_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StopAutoSpin, OnError));
             slotManager.shuffleInitialMatrix();
+            slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
+
         }, OnError);
-        socketManager.OpenSocket();
-        slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
     }
 
     void StartAutoSpin()
@@ -76,6 +78,34 @@ public class GameManager : MonoBehaviour
         }, OnError);
     }
 
+
+void OnBetChange(bool IncDec){
+
+        // if (audioController) audioController.PlayButtonAudio();
+
+        if (IncDec)
+        {
+            if (socketManager.socketModel.initGameData.Bets.Count < 10)
+            {
+                BetCounter++;
+            }
+        }
+        else
+        {
+            if (BetCounter > 0)
+            {
+                BetCounter--;
+            }
+        }
+
+// TODO: WF to be done
+        // if (BetPerLine_text) BetPerLine_text.text = socketManager.socketModel.initGameData.Bets[BetCounter].ToString();
+        // if (TotalBet_text) TotalBet_text.text = (socketManager.socketModel.initGameData.Bets[BetCounter]*3).ToString();
+
+        // slotManager.UpdateBetText(socketManager.socketModel.initGameData.Bets[BetCounter]);
+}
+
+
     bool OnSpinStart()
     {
         return ErrorHandler.RunSafely(() =>
@@ -85,9 +115,10 @@ public class GameManager : MonoBehaviour
             slotManager.WinningsAnim(false);
             slotManager.ResetLines();
             bool start = slotManager.CompareBalance();
-            if(start){
-            var spinData = new { data = new { currentBet = 0 , currentLines = 20, spins = 1 }, id = "SPIN" };
-            socketManager.SendData("message",spinData);
+            if (start)
+            {
+                var spinData = new { data = new { currentBet = 0, currentLines = 20, spins = 1 }, id = "SPIN" };
+                socketManager.SendData("message", spinData);
             }
             slotManager.ToggleButtonGrp(false);
             return start;
@@ -101,7 +132,6 @@ public class GameManager : MonoBehaviour
         {
             slotManager.InitiateForAnimation(result);
             slotManager.BalanceDeduction();
-            slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
         }, OnError);
     }
 
@@ -109,6 +139,7 @@ public class GameManager : MonoBehaviour
     {
         ErrorHandler.RunSafely(() =>
         {
+            slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
             slotManager.ProcessPayoutLines(LineId);
             // TODO: WF enable animation
             // slotManager.ProcessPointsAnimations(points_AnimString);
@@ -130,7 +161,7 @@ public class GameManager : MonoBehaviour
             yield break;
         }
         yield return ErrorHandler.RunSafely(slotManager.InitiateSpin(), OnError);
-        yield return new WaitUntil(()=>socketManager.isResultdone);
+        yield return new WaitUntil(() => socketManager.isResultdone);
         OnSpin(socketManager.socketModel.resultGameData.ResultReel);
         yield return new WaitForSeconds(0.5f);
         yield return ErrorHandler.RunSafely(slotManager.TerminateSpin(), OnError);
