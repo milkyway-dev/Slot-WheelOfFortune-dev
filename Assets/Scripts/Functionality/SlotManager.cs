@@ -7,10 +7,9 @@ using System.Linq;
 using TMPro;
 using System;
 using UnityEngine.UI.Extensions;
+using Newtonsoft.Json;
 public class SlotManager : MonoBehaviour
 {
-    [SerializeField]
-    private RectTransform mainContainer_RT;
 
     [Header("Sprites")]
     [SerializeField] private Sprite[] myImages;
@@ -116,55 +115,10 @@ public class SlotManager : MonoBehaviour
             button.onClick.AddListener(() => action());
         }
     }
-    private void AutoSpin()
-    {
-        if (!IsAutoSpin)
-        {
-            IsAutoSpin = true;
-            if (AutoSpinStop_Button) AutoSpinStop_Button.gameObject.SetActive(true);
-            if (AutoSpin_Button) AutoSpin_Button.gameObject.SetActive(false);
 
-            if (AutoSpinRoutine != null)
-            {
-                StopCoroutine(AutoSpinRoutine);
-                AutoSpinRoutine = null;
-            }
-            AutoSpinRoutine = StartCoroutine(AutoSpinCoroutine());
-        }
-    }
 
-    private void StopAutoSpin()
-    {
-        if (IsAutoSpin)
-        {
-            IsAutoSpin = false;
-            if (AutoSpinStop_Button) AutoSpinStop_Button.gameObject.SetActive(false);
-            if (AutoSpin_Button) AutoSpin_Button.gameObject.SetActive(true);
-            StartCoroutine(StopAutoSpinCoroutine());
-        }
-    }
-    private IEnumerator StopAutoSpinCoroutine()
-    {
-        yield return new WaitUntil(() => !IsSpinning);
-        ToggleButtonGrp(true);
-        if (AutoSpinRoutine != null || tweenroutine != null)
-        {
-            StopCoroutine(AutoSpinRoutine);
-            StopCoroutine(tweenroutine);
-            tweenroutine = null;
-            AutoSpinRoutine = null;
-            StopCoroutine(StopAutoSpinCoroutine());
-        }
-    }
 
-    private IEnumerator AutoSpinCoroutine()
-    {
-        while (IsAutoSpin)
-        {
-            StartSlots(IsAutoSpin);
-            yield return tweenroutine;
-        }
-    }
+
 
 
 
@@ -238,13 +192,7 @@ public class SlotManager : MonoBehaviour
     }
 
     //just for testing purposes delete on production
-    private void Update()
-    {
-        // if (Input.GetKeyDown(KeyCode.Space) && SlotStart_Button.interactable)
-        // {
-        //     StartSlots();
-        // }
-    }
+
 
     internal void SetInitialUI()
     {
@@ -330,32 +278,6 @@ public class SlotManager : MonoBehaviour
 
         }
     }
-    //starts the spin process
-    private void StartSlots(bool autoSpin = false)
-    {
-        // WinningsAnim(false);
-        if (!autoSpin)
-        {
-            if (audioController) audioController.PlayButtonAudio("spin");
-
-            if (AutoSpinRoutine != null)
-            {
-                StopCoroutine(AutoSpinRoutine);
-                StopCoroutine(tweenroutine);
-                tweenroutine = null;
-                AutoSpinRoutine = null;
-            }
-        }
-
-        if (TempList.Count > 0)
-        {
-            StopGameAnimation();
-
-
-        }
-        PayCalculator.ResetLines();
-        tweenroutine = StartCoroutine(TweenRoutine());
-    }
 
 
     internal void BalanceDeduction()
@@ -412,103 +334,32 @@ public class SlotManager : MonoBehaviour
         }
     }
     //manage the Routine for spinning of the slots
-    private IEnumerator TweenRoutine()
+
+    internal void InitiateForAnimation(List<List<int>> result)
     {
-
-        yield return new WaitForSeconds(0.1f);
-        if (audioController) audioController.PlaySpinAudio();
-        IsSpinning = true;
-        if (currentBalance < currentTotalBet)
-        {
-            CompareBalance();
-            if (IsAutoSpin)
-            {
-                StopAutoSpin();
-                yield return new WaitForSeconds(1f);
-            }
-            yield break;
-        }
-        // ToggleButtonGrp(false);
-
-        // InitiateSpin();
-
-        // BalanceDeduction();
-
-        SocketManager.AccumulateResult(BetCounter);
-        // yield return new WaitForSeconds(0.5f);
-
-
-        // for (int j = 0; j < SocketManager.resultData.ResultReel.Count; j++)
-        // {
-        //     List<int> resultnum = SocketManager.resultData.FinalResultReel[j]?.Split(',')?.Select(Int32.Parse)?.ToList();
-        //     for (int i = 0; i < 5; i++)
-        //     {
-        //         if (images[i].slotImages[images[i].slotImages.Count - 5 + j]) images[i].slotImages[images[i].slotImages.Count - 5 + j].sprite = myImages[resultnum[i]];
-        //         PopulateAnimationSprites(images[i].slotImages[images[i].slotImages.Count - 5 + j].gameObject.GetComponent<ImageAnimation>(), resultnum[i]);
-        //     }
-        // }
-
-        // InitiateForAnimation();
-
-        // yield return new WaitForSeconds(0.5f);
-
-        // TerminateSpin();
-
-        // yield return new WaitForSeconds(0.5f);
-
-        // if (audioController) audioController.StopSpinAudio();
-
-        // CheckPayoutLineBackend(SocketManager.resultData.linesToEmit, SocketManager.resultData.FinalsymbolsToEmit);
-        // CheckPayoutLineBackend(LineId, points_AnimString);
-
-        // KillAllTweens();
-
-        // CheckPopups = true;
-
-        // currentBalance = SocketManager.playerdata.Balance;
-
-        // CheckWinPopups();
-
-        yield return new WaitUntil(() => !CheckPopups);
-
-        //if (SocketManager.resultData.jackpot > 0)
-        //{
-        //    CheckPopups = true;
-        //    uiManager.PopulateWin(4, SocketManager.resultData.jackpot);
-        //}
-
-        //yield return new WaitUntil(() => !CheckPopups);
-
-        // if (TotalWin_text) TotalWin_text.text = SocketManager.resultData.WinAmout.ToString("f2");
-        // if (Balance_text) Balance_text.text = SocketManager.playerdata.Balance.ToString("f2");
-
-        if (!IsAutoSpin)
-        {
-            ToggleButtonGrp(true);
-            IsSpinning = false;
-
-        }
-        else
-        {
-            IsSpinning = false;
-            yield return new WaitForSeconds(2f);
-        }
-
-    }
-
-    internal void InitiateForAnimation()
-    {
+        Debug.Log(JsonConvert.SerializeObject(result));
         for (int i = 0; i < slotmatrix.Count; i++)
         {
             for (int j = 0; j < slotmatrix[i].slotImages.Count; j++)
             {
-                slotmatrix[i].slotImages[j].sprite = myImages[slot[i].data[j]];
-                PopulateAnimationSprites(slotmatrix[i].slotImages[slotmatrix[i].slotImages.Count - 5 + j].gameObject.GetComponent<ImageAnimation>(), slot[i].data[j]);
+                Debug.Log($"in INitiate {i},{j}");
+                Debug.Log($"in INitiate {result[i][j]}");
+                slotmatrix[i].slotImages[j].sprite = myImages[result[i][j]];
+                // PopulateAnimationSprites(slotmatrix[i].slotImages[j].gameObject.GetComponent<ImageAnimation>(), result[i][j]);
 
             }
         }
     }
 
+    internal void UpdatePlayerData(PlayerData playerData){
+
+
+        TotalWin_text.text=playerData.currentWining.ToString();
+        Balance_text.text=playerData.Balance.ToString();
+        Debug.Log($"{playerData.Balance.ToString()}");
+
+
+    }
     internal IEnumerator TerminateSpin()
     {
         WaitForSeconds delay = new WaitForSeconds(0.3f);
@@ -567,34 +418,29 @@ public class SlotManager : MonoBehaviour
 
     internal void shuffleInitialMatrix()
     {
+        int randomIndex = UnityEngine.Random.Range(0, myImages.Length);
         for (int i = 0; i < slotmatrix.Count; i++)
         {
-            int prevRandomIndex = UnityEngine.Random.Range(0, myImages.Length);
 
-            for (int j = 0; j < 5; j++)
+
+            for (int j = 0; j < slotmatrix[i].slotImages.Count; j++)
             {
-                int randomIndex = UnityEngine.Random.Range(1, myImages.Length);
-
-                if (prevRandomIndex != 0)
-                    randomIndex = 0;
 
                 slotmatrix[i].slotImages[j].sprite = myImages[randomIndex];
-                prevRandomIndex = randomIndex;
 
             }
+            int nextRandomIndex = 0;
+
+            if (randomIndex == 0)
+                nextRandomIndex = UnityEngine.Random.Range(1, myImages.Length);
+
+
+            randomIndex = nextRandomIndex;
+
         }
     }
 
-    // private void OnApplicationFocus(bool focus)
-    // {
-    //     if (focus)
-    //     {
-    //         if (!IsSpinning)
-    //         {
-    //             if (audioController) audioController.StopWLAaudio();
-    //         }
-    //     }
-    // }
+
 
     internal void CallCloseSocket()
     {
@@ -696,41 +542,6 @@ public class SlotManager : MonoBehaviour
     }
 
     //generate the payout lines generated 
-    private void CheckPayoutLineBackend(List<int> LineId, List<string> points_AnimString, double jackpot = 0)
-    {
-        List<int> y_points = new List<int>() { 2, 2, 2 };
-        List<int> points_anim = null;
-        if (LineId.Count > 0 || points_AnimString.Count > 0)
-        {
-            WinningsAnim(true);
-            if (audioController) audioController.PlayWLAudio("win");
-
-            for (int i = 0; i < LineId.Count; i++)
-            {
-                // y_points = y_string[LineId[i] + 1]?.Split(',')?.Select(Int32.Parse)?.ToList();
-                GeneratePayline(y_points, 3);
-            }
-
-            for (int i = 0; i < points_AnimString.Count; i++)
-            {
-                points_anim = points_AnimString[i]?.Split(',')?.Select(Int32.Parse)?.ToList();
-
-                for (int k = 0; k < points_anim.Count; k++)
-                {
-                    if (points_anim[k] >= 10)
-                    {
-                        StartGameAnimation(slotmatrix[(points_anim[k] / 10) % 10].slotImages[points_anim[k] % 10].gameObject);
-                    }
-                    else
-                    {
-                        StartGameAnimation(slotmatrix[0].slotImages[points_anim[k]].gameObject);
-                    }
-                }
-            }
-        }
-
-    }
-
     private void GeneratePayline(List<int> y_index, int Count)
     {
         GameObject MyLineObj = Instantiate(Line_Prefab, LineContainer);
@@ -745,27 +556,6 @@ public class SlotManager : MonoBehaviour
         MyLine.Points = pointlist.ToArray();
     }
 
-
-
-
-    #region TweeningCode
-    private void InitializeTweening(Transform slotTransform)
-    {
-        // slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
-        Tweener tweener = slotTransform.DOLocalMoveY(-tweenHeight, 0.1f).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
-        tweener.Play();
-        alltweens.Add(tweener);
-    }
-
-    private IEnumerator StopTweening(Transform slotTransform, int index)
-    {
-        alltweens[index].Pause();
-        slotTransform.localPosition = new Vector2(slotTransform.localPosition.x, 0);
-        alltweens[index] = slotTransform.DOLocalMoveY(stopPosition, 0.3f).SetEase(Ease.OutElastic);
-        yield return new WaitForSeconds(0.2f);
-    }
-
-
     internal void KillAllTweens()
     {
         for (int i = 0; i < alltweens.Count; i++)
@@ -775,7 +565,6 @@ public class SlotManager : MonoBehaviour
         alltweens.Clear();
 
     }
-    #endregion
 
 }
 

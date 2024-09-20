@@ -5238,7 +5238,7 @@ MonoBehaviour:
   uIManager: {fileID: 377874625}
   bonusdata: []
   _jsManager: {fileID: 500036493}
-  TestToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2Yjc1YWE0N2EyZWEwYTUxNDdkOTQwMSIsInVzZXJuYW1lIjoic2F5YW4iLCJyb2xlIjoicGxheWVyIiwiaWF0IjoxNzI0NjUyMDczLCJleHAiOjE3MjUyNTY4NzN9.X8vAv_P1tomLhJ360vhDxTLSYHCZsDwV5kDNFyRznWo
+  TestToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDgzY2U1YTI3YmY5MDI0NDNlYjRjMCIsInVzZXJuYW1lIjoic2F5YW4iLCJyb2xlIjoicGxheWVyIiwiaWF0IjoxNzI2ODA2NzM2LCJleHAiOjE3Mjc0MTE1MzZ9.rewOgWky31lZ-xspaS_hQ-8tWdP-Osnne8wyRPOkYuw
 --- !u!114 &500036493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15257,6 +15257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   slotManager: {fileID: 2046803210}
+  socketManager: {fileID: 500036492}
   SlotStart_Button: {fileID: 567733206}
   AutoSpin_Button: {fileID: 271841706}
   AutoSpinStop_Button: {fileID: 108837612}
@@ -23831,35 +23832,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce5425de25e7b479e921e2bb06840bcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainContainer_RT: {fileID: 1574897783}
   myImages:
   - {fileID: 21300000, guid: c773ff7ee026f42d8b87b0135e3232b5, type: 3}
-  - {fileID: 21300000, guid: 397211e501f464dc8a92bd3cff4681d7, type: 3}
-  - {fileID: 21300000, guid: 5d64524f92407488284ca0da8f714ce0, type: 3}
-  - {fileID: 21300000, guid: bb7c0192ede5348fc811068e2b6c09a8, type: 3}
-  - {fileID: 21300000, guid: 498114de47d624188824e5a4ce76b369, type: 3}
-  - {fileID: 21300000, guid: 7d7c1d7780b1c4dec98ab0f1f92ff9aa, type: 3}
-  - {fileID: 21300000, guid: 9f1719bd58e46442587b6a71d514b6a8, type: 3}
   - {fileID: 21300000, guid: bd7e77ca3bc904baf91aa98124f8f251, type: 3}
+  - {fileID: 21300000, guid: 5d64524f92407488284ca0da8f714ce0, type: 3}
+  - {fileID: 21300000, guid: 397211e501f464dc8a92bd3cff4681d7, type: 3}
+  - {fileID: 21300000, guid: 498114de47d624188824e5a4ce76b369, type: 3}
+  - {fileID: 21300000, guid: bb7c0192ede5348fc811068e2b6c09a8, type: 3}
+  - {fileID: 21300000, guid: df022c823b1fd4d9093fc43360ee7f76, type: 3}
+  - {fileID: 21300000, guid: 701684a24e5d3428fbf62adac0fad13f, type: 3}
+  - {fileID: 21300000, guid: 39852b8ab07d948178ad085d74cc8a43, type: 3}
+  - {fileID: 21300000, guid: a0e6319966822487897998624cc8a398, type: 3}
+  - {fileID: 21300000, guid: f2d572eff17094128b299461020b56b2, type: 3}
   - {fileID: 21300000, guid: 7c1f43c9a99b540668a6c65859099a42, type: 3}
+  - {fileID: 21300000, guid: 9f1719bd58e46442587b6a71d514b6a8, type: 3}
   slotmatrix:
   - slotImages:
-    - {fileID: 2036600633}
-    - {fileID: 592519522}
-    - {fileID: 1285718936}
-    - {fileID: 1245141479}
     - {fileID: 2062712585}
-  - slotImages:
     - {fileID: 1984644419}
-    - {fileID: 706967374}
-    - {fileID: 173033448}
-    - {fileID: 1334814620}
-    - {fileID: 1232135314}
-  - slotImages:
     - {fileID: 306433853}
+  - slotImages:
+    - {fileID: 1245141479}
+    - {fileID: 706967374}
     - {fileID: 248092066}
+  - slotImages:
+    - {fileID: 1285718936}
+    - {fileID: 173033448}
     - {fileID: 632121744}
+  - slotImages:
+    - {fileID: 592519522}
+    - {fileID: 1334814620}
     - {fileID: 1983919139}
+  - slotImages:
+    - {fileID: 2036600633}
+    - {fileID: 1232135314}
     - {fileID: 1674357457}
   Slot_Transform:
   - {fileID: 1814462060}

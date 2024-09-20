@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private SlotManager slotManager;
+    [SerializeField] private SocketIOManager socketManager;
     [Header("Buttons")]
     [SerializeField] private Button SlotStart_Button;
     [SerializeField] private Button AutoSpin_Button;
@@ -24,11 +25,13 @@ public class GameManager : MonoBehaviour
     {
         ErrorHandler.RunSafely(() =>
         {
-            SlotStart_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartSpin,OnError));
-            AutoSpin_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartAutoSpin,OnError));
-            AutoSpinStop_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StopAutoSpin,OnError));
+            SlotStart_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartSpin, OnError));
+            AutoSpin_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartAutoSpin, OnError));
+            AutoSpinStop_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StopAutoSpin, OnError));
             slotManager.shuffleInitialMatrix();
-        },OnError);
+        }, OnError);
+        socketManager.OpenSocket();
+        slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
     }
 
     void StartAutoSpin()
@@ -40,8 +43,8 @@ public class GameManager : MonoBehaviour
         {
             if (AutoSpinStop_Button) AutoSpinStop_Button.gameObject.SetActive(true);
             if (AutoSpin_Button) AutoSpin_Button.gameObject.SetActive(false);
-            StartCoroutine(ErrorHandler.RunSafely(AutoSpinRoutine(),OnError));
-        },OnError);
+            StartCoroutine(ErrorHandler.RunSafely(AutoSpinRoutine(), OnError));
+        }, OnError);
     }
 
     private void StopAutoSpin()
@@ -53,9 +56,9 @@ public class GameManager : MonoBehaviour
                 IsAutoSpin = false;
                 if (AutoSpinStop_Button) AutoSpinStop_Button.gameObject.SetActive(false);
                 if (AutoSpin_Button) AutoSpin_Button.gameObject.SetActive(true);
-                StartCoroutine(ErrorHandler.RunSafely(StopAutoSpinCoroutine(),OnError));
+                StartCoroutine(ErrorHandler.RunSafely(StopAutoSpinCoroutine(), OnError));
             }
-        },OnError);
+        }, OnError);
     }
 
     private IEnumerator StopAutoSpinCoroutine()
@@ -69,33 +72,37 @@ public class GameManager : MonoBehaviour
     {
         ErrorHandler.RunSafely(() =>
         {
-            StartCoroutine(ErrorHandler.RunSafely(SpinRoutine(),OnError));
-        },OnError);
+            StartCoroutine(ErrorHandler.RunSafely(SpinRoutine(), OnError));
+        }, OnError);
     }
 
     bool OnSpinStart()
     {
         return ErrorHandler.RunSafely(() =>
         {
+
             slotManager.StopGameAnimation();
             slotManager.WinningsAnim(false);
-            bool start = slotManager.CompareBalance();
-            slotManager.ToggleButtonGrp(false);
             slotManager.ResetLines();
+            bool start = slotManager.CompareBalance();
+            if(start){
+            var spinData = new { data = new { currentBet = 0 , currentLines = 20, spins = 1 }, id = "SPIN" };
+            socketManager.SendData("message",spinData);
+            }
+            slotManager.ToggleButtonGrp(false);
             return start;
 
-        },OnError);
+        }, OnError);
     }
 
-    void OnSpin()
+    void OnSpin(List<List<int>> result)
     {
         ErrorHandler.RunSafely(() =>
         {
-            slotManager.InitiateForAnimation();
+            slotManager.InitiateForAnimation(result);
             slotManager.BalanceDeduction();
-            // slotManager.CheckWinPopups();
-
-        },OnError);
+            slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
+        }, OnError);
     }
 
     void OnSpinEnd()
@@ -103,23 +110,30 @@ public class GameManager : MonoBehaviour
         ErrorHandler.RunSafely(() =>
         {
             slotManager.ProcessPayoutLines(LineId);
-            slotManager.ProcessPointsAnimations(points_AnimString);
+            // TODO: WF enable animation
+            // slotManager.ProcessPointsAnimations(points_AnimString);
             if (!IsAutoSpin) slotManager.ToggleButtonGrp(true);
 
 
-        },OnError);
+        }, OnError);
     }
 
     IEnumerator SpinRoutine()
     {
         IsSpinning = true;
 
-        OnSpinStart();
-        yield return ErrorHandler.RunSafely(slotManager.InitiateSpin(),OnError);
-        OnSpin();
-        yield return new WaitForSeconds(0.5f);
-        yield return ErrorHandler.RunSafely(slotManager.TerminateSpin(),OnError);
+        bool start = OnSpinStart();
+        if (!start)
+        {
 
+            OnSpinEnd();
+            yield break;
+        }
+        yield return ErrorHandler.RunSafely(slotManager.InitiateSpin(), OnError);
+        yield return new WaitUntil(()=>socketManager.isResultdone);
+        OnSpin(socketManager.socketModel.resultGameData.ResultReel);
+        yield return new WaitForSeconds(0.5f);
+        yield return ErrorHandler.RunSafely(slotManager.TerminateSpin(), OnError);
         if (!IsAutoSpin) IsSpinning = false;
         OnSpinEnd();
     }
@@ -130,14 +144,15 @@ public class GameManager : MonoBehaviour
 
         while (IsAutoSpin)
         {
-            yield return ErrorHandler.RunSafely(SpinRoutine(),OnError);
+            yield return ErrorHandler.RunSafely(SpinRoutine(), OnError);
             yield return delay;
         }
 
         IsSpinning = false;
     }
 
-    void OnError(){
+    void OnError()
+    {
 
         slotManager.KillAllTweens();
     }
