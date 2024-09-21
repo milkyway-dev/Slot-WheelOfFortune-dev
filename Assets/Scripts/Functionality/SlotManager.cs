@@ -122,55 +122,73 @@ public class SlotManager : MonoBehaviour
 
     }
 
-    Sequence MoveTest()
+    List<Tween> slotTweens = new List<Tween>();
+
+    void MoveTest(float delay)
     {
 
-        Sequence sequence = DOTween.Sequence();
+        Vector3[] originalPositions = new Vector3[slot1Segment.Length];
+        Transform lastElement;
+        foreach (var tween in slotTweens)
+        {
+            tween.Kill();  // Stop each tween in the list
+        }
+        slotTweens.Clear();
+        for (int i = 0; i < slot1Segment.Length; i++)
+        {
+            originalPositions[i] = slot1Segment[i].localPosition;
+        }
 
-        // Define the movement distance (the distance between the segments)
-        float moveDistance = slot1Segment[1].localPosition.y - slot1Segment[0].localPosition.y;
 
-        // Move all three segments down by 'moveDistance'
-        sequence
-            .Join(slot1Segment[0].DOLocalMoveY(slot1Segment[1].localPosition.y , 1f))
-            .Join(slot1Segment[1].DOLocalMoveY(slot1Segment[2].localPosition.y , 1f).OnComplete(()=>slot1Segment[1].gameObject.SetActive(false)))
-            .Join(slot1Segment[2].DOLocalMoveY(slot1Segment[0].localPosition.y , 1f).OnComplete(()=>slot1Segment[2].gameObject.SetActive(true)))
-            .OnComplete(() =>
-            {
-                var temp=slot1Segment[1];
-                var temp2=slot1Segment[2];
-                slot1Segment[1]=slot1Segment[0];
-                slot1Segment[2]=temp;
-                slot1Segment[0]=temp2;
-            });
-            //     // When the first segment reaches the threshold, reposition it
-     
-            //         slot1Segment[0].localPosition = new Vector3(slot1Segment[0].localPosition.x, slot1Segment[2].localPosition.y + moveDistance, slot1Segment[0].localPosition.z);
+        for (int i = 0; i < slot1Segment.Length - 1; i++)
+        {
+            Tween t1 = slot1Segment[i].DOLocalMoveY(originalPositions[i + 1].y, delay, false).SetEase(Ease.Linear);
+            slotTweens.Add(t1);
+        }
 
-            //     // When the second segment reaches the threshold, reposition it
-     
-            //         slot1Segment[1].localPosition = new Vector3(slot1Segment[1].localPosition.x, slot1Segment[0].localPosition.y + moveDistance, slot1Segment[1].localPosition.z);
+        // Move the last element to the first position and then perform reordering
+        Tween t2 = slot1Segment[slot1Segment.Length - 1].DOLocalMoveY(originalPositions[0].y, delay, false).SetEase(Ease.Linear)
+                   .OnComplete(() =>
+                   {
+                       lastElement = slot1Segment[slot1Segment.Length - 1];
 
-            //     // When the third segment reaches the threshold, reposition it
+                       // Shift array elements down
+                       for (int i = slot1Segment.Length - 1; i > 0; i--)
+                       {
+                           slot1Segment[i] = slot1Segment[i - 1];
+                       }
+                       slot1Segment[0] = lastElement;
 
-            //         slot1Segment[2].localPosition = new Vector3(slot1Segment[2].localPosition.x, slot1Segment[1].localPosition.y + moveDistance, slot1Segment[2].localPosition.z);
-            // });
-
-        // Loop the sequence indefinitely for seamless movement
-        sequence.SetLoops(-1, LoopType.Restart).SetEase(Ease.Linear);
-
-        return sequence;
+                       // Reactivate the last element
+                       slot1Segment[0].gameObject.SetActive(true);
+                   });
+        slotTweens.Add(t2);
     }
 
     IEnumerator Move()
     {
-        MoveTest();
-        yield return new WaitForSeconds(1f);
+        while (IsSpinning)
+        {
+            MoveTest(0.4f);
+            yield return new WaitForSeconds(0.4f);
+        }
+
+        
         // MoveTest();
         // yield return new WaitForSeconds(1f);
         // MoveTest();
         // yield return new WaitForSeconds(1f);
         // MoveTest();
+    }
+
+    void StopSpin()
+    {
+        foreach (var tween in slotTweens)
+        {
+            tween.Kill();
+        }
+
+        slotTweens.Clear();
     }
     internal void UpdateBetText()
     {
@@ -421,7 +439,7 @@ public class SlotManager : MonoBehaviour
         Tweener tweener = null;
         for (int i = 0; i < Slot_Transform.Length; i++)
         {
-            tweener = Slot_Transform[i].DOLocalMoveY(-tweenHeight, 0.15f).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
+            tweener = Slot_Transform[i].DOLocalMoveY(-tweenHeight, 0.5f, false).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
             // tweener.Play();
             alltweens.Add(tweener);
             // InitializeTweening(Slot_Transform[i]);
