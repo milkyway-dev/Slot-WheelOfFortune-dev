@@ -90,6 +90,8 @@ public class SlotManager : MonoBehaviour
     [SerializeField] private List<int> LineId;
     [SerializeField] private List<string> points_AnimString;
 
+    [SerializeField] private Transform[] slot1Segment;
+
     [Header("payline")]
     [SerializeField] private Vector2 InitialLinePosition = new Vector2(-315, 100);
     [SerializeField] private int x_Distance;
@@ -98,12 +100,6 @@ public class SlotManager : MonoBehaviour
     [SerializeField] private GameObject Line_Prefab;
     private void Start()
     {
-        // SetButton(SlotStart_Button, () => StartSlots());
-        // SetButton(AutoSpin_Button, () => AutoSpin());
-        // SetButton(AutoSpinStop_Button, StopAutoSpin);
-        // SetButton(BetPlus_Button, () => ChangeBet(true));
-        // SetButton(BetMinus_Button, () => ChangeBet(false));
-        // SetButton(MaxBet_Button, MaxBet);
         tweenHeight = reelHeight + stopPosition;
     }
 
@@ -116,25 +112,69 @@ public class SlotManager : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            StartCoroutine(Move());
+        }
+
+    }
+
+    Sequence MoveTest()
+    {
+
+        Sequence sequence = DOTween.Sequence();
+
+        // Define the movement distance (the distance between the segments)
+        float moveDistance = slot1Segment[1].localPosition.y - slot1Segment[0].localPosition.y;
+
+        // Move all three segments down by 'moveDistance'
+        sequence
+            .Join(slot1Segment[0].DOLocalMoveY(slot1Segment[1].localPosition.y , 1f))
+            .Join(slot1Segment[1].DOLocalMoveY(slot1Segment[2].localPosition.y , 1f).OnComplete(()=>slot1Segment[1].gameObject.SetActive(false)))
+            .Join(slot1Segment[2].DOLocalMoveY(slot1Segment[0].localPosition.y , 1f).OnComplete(()=>slot1Segment[2].gameObject.SetActive(true)))
+            .OnComplete(() =>
+            {
+                var temp=slot1Segment[1];
+                var temp2=slot1Segment[2];
+                slot1Segment[1]=slot1Segment[0];
+                slot1Segment[2]=temp;
+                slot1Segment[0]=temp2;
+            });
+            //     // When the first segment reaches the threshold, reposition it
+     
+            //         slot1Segment[0].localPosition = new Vector3(slot1Segment[0].localPosition.x, slot1Segment[2].localPosition.y + moveDistance, slot1Segment[0].localPosition.z);
+
+            //     // When the second segment reaches the threshold, reposition it
+     
+            //         slot1Segment[1].localPosition = new Vector3(slot1Segment[1].localPosition.x, slot1Segment[0].localPosition.y + moveDistance, slot1Segment[1].localPosition.z);
+
+            //     // When the third segment reaches the threshold, reposition it
+
+            //         slot1Segment[2].localPosition = new Vector3(slot1Segment[2].localPosition.x, slot1Segment[1].localPosition.y + moveDistance, slot1Segment[2].localPosition.z);
+            // });
+
+        // Loop the sequence indefinitely for seamless movement
+        sequence.SetLoops(-1, LoopType.Restart).SetEase(Ease.Linear);
+
+        return sequence;
+    }
+
+    IEnumerator Move()
+    {
+        MoveTest();
+        yield return new WaitForSeconds(1f);
+        // MoveTest();
+        // yield return new WaitForSeconds(1f);
+        // MoveTest();
+        // yield return new WaitForSeconds(1f);
+        // MoveTest();
+    }
     internal void UpdateBetText()
     {
         if (audioController) audioController.PlayButtonAudio();
-
-        // if (IncDec)
-        // {
-        //     if (BetCounter < 10)
-        //     {
-        //         BetCounter++;
-        //     }
-        // }
-        // else
-        // {
-        //     if (BetCounter > 0)
-        //     {
-        //         BetCounter--;
-        //     }
-        // }
-
         if (BetPerLine_text) BetPerLine_text.text = BetCounter.ToString();
         if (TotalBet_text) TotalBet_text.text = BetCounter.ToString();
         // if (BetPerLine_text) BetPerLine_text.text = SocketManager.initialData.Bets[BetCounter].ToString();
@@ -179,7 +219,7 @@ public class SlotManager : MonoBehaviour
         PayCalculator.GeneratePayoutLinesBackend(y_points, y_points.Count, true);
     }
 
-    //Destroy Static Lines from button hovers
+
     internal void DestroyStaticLine()
     {
         PayCalculator.ResetStaticLine();
@@ -336,8 +376,6 @@ public class SlotManager : MonoBehaviour
         {
             for (int j = 0; j < slotmatrix[i].slotImages.Count; j++)
             {
-                Debug.Log($"in INitiate {i},{j}");
-                Debug.Log($"in INitiate {result[i][j]}");
                 slotmatrix[i].slotImages[j].sprite = myImages[result[i][j]];
                 // PopulateAnimationSprites(slotmatrix[i].slotImages[j].gameObject.GetComponent<ImageAnimation>(), result[i][j]);
 
@@ -345,12 +383,13 @@ public class SlotManager : MonoBehaviour
         }
     }
 
-    internal void UpdatePlayerData(PlayerData playerData){
+    internal void UpdatePlayerData(PlayerData playerData)
+    {
 
 
-        TotalWin_text.text=playerData.currentWining.ToString();
-        Balance_text.text=playerData.Balance.ToString();
-        Debug.Log($"{playerData.Balance.ToString()}");
+        TotalWin_text.text = playerData.currentWining.ToString();
+        Balance_text.text = playerData.Balance.ToString();
+        Debug.Log($"{playerData.Balance}");
 
 
     }
@@ -389,6 +428,9 @@ public class SlotManager : MonoBehaviour
             yield return delay;
         }
     }
+
+
+
 
     internal void CheckWinPopups()
     {

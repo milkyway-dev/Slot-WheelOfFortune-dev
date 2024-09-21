@@ -161,12 +161,12 @@ void OnBetChange(bool IncDec){
             yield break;
         }
         yield return ErrorHandler.RunSafely(slotManager.InitiateSpin(), OnError);
-        yield return new WaitUntil(() => socketManager.isResultdone);
-        OnSpin(socketManager.socketModel.resultGameData.ResultReel);
-        yield return new WaitForSeconds(0.5f);
-        yield return ErrorHandler.RunSafely(slotManager.TerminateSpin(), OnError);
-        if (!IsAutoSpin) IsSpinning = false;
-        OnSpinEnd();
+    //     yield return new WaitUntil(() => socketManager.isResultdone);
+    //     OnSpin(socketManager.socketModel.resultGameData.ResultReel);
+    //     yield return new WaitForSeconds(0.5f);
+    //     yield return ErrorHandler.RunSafely(slotManager.TerminateSpin(), OnError);
+    //     if (!IsAutoSpin) IsSpinning = false;
+    //     OnSpinEnd();
     }
 
     IEnumerator AutoSpinRoutine()
