@@ -14,19 +14,6 @@ public class UIManager : MonoBehaviour
 
 
     [SerializeField] private Button About_Button;
-    [SerializeField] private GameObject About_Object;
-    [SerializeField] private RectTransform About_RT;
-
-    [SerializeField] private Button Exit_Button;
-    [SerializeField] private GameObject Exit_Object;
-    [SerializeField] private RectTransform Exit_RT;
-
-    //[SerializeField]
-    //private Button Paytable_Button;
-    //[SerializeField]
-    //private GameObject Paytable_Object;
-    //[SerializeField]
-    //private RectTransform Paytable_RT;
 
     [Header("Popus UI")]
     [SerializeField] private GameObject PopUpPanel;
@@ -53,7 +40,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Sprite BigWin_Sprite;
     [SerializeField] private Sprite HugeWin_Sprite;
     [SerializeField] private Sprite MegaWin_Sprite;
-    [SerializeField] private Image Win_Image;
+    [SerializeField] private TMP_Text Win_text_title;
     [SerializeField] private GameObject WinPopup_Object;
     [SerializeField] private TMP_Text Win_Text;
 
@@ -112,7 +99,7 @@ public class UIManager : MonoBehaviour
     private bool isSound = true;
     private bool isExit = false;
 
-    public GameObject ActivePopup=null;
+    public GameObject ActivePopup = null;
 
     private void Awake()
     {
@@ -147,33 +134,49 @@ public class UIManager : MonoBehaviour
 
     }
 
-    void SetButton(Button button, Action action){
+    void SetButton(Button button, Action action)
+    {
         if (button)
         {
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(()=>action());
+            button.onClick.AddListener(() => action());
         }
     }
-    internal void PopulateWin(int value, double amount)
-    {
+    internal void PopulateWin(int value, double amount,Action<bool> isDone)
+    {   
         switch (value)
         {
             case 1:
-                if (Win_Image) Win_Image.sprite = BigWin_Sprite;
+                if (Win_text_title) Win_text_title.text = "Big Win";
                 break;
             case 2:
-                if (Win_Image) Win_Image.sprite = HugeWin_Sprite;
+                if (Win_text_title) Win_text_title.text = "Huge Win";
                 break;
             case 3:
-                if (Win_Image) Win_Image.sprite = MegaWin_Sprite;
+                if (Win_text_title) Win_text_title.text = "Mega WIn";
                 break;
 
         }
 
-        if (value == 4)
-            StartPopupAnim(amount, true);
-        else
-            StartPopupAnim(amount, false);
+        double initAmount = 0;
+
+        if (WinPopup_Object) WinPopup_Object.SetActive(true);
+
+        if (MainPopup_Object) MainPopup_Object.SetActive(true);
+
+        DOTween.To(() => initAmount, (val) => initAmount = val, amount, 5f).OnUpdate(() =>
+        {
+            if (Win_Text) Win_Text.text = initAmount.ToString("f2");
+        });
+
+        DOVirtual.DelayedCall(6.5f, () =>
+        {
+
+            ClosePopup();
+            slotManager.CheckPopups = false;
+            isDone(false);
+        });
+        // StartPopupAnim(amount);
 
     }
 
@@ -218,46 +221,23 @@ public class UIManager : MonoBehaviour
     //    if (MainPopup_Object) MainPopup_Object.SetActive(true);
     //}
 
-    private void StartPopupAnim(double amount, bool jackpot = false)
+    private void StartPopupAnim(double amount)
     {
-        int initAmount = 0;
-        if (jackpot)
-        {
-            if (jackpot_Object) jackpot_Object.SetActive(true);
-        }
-        else
-        {
-            if (WinPopup_Object) WinPopup_Object.SetActive(true);
+        double initAmount = 0;
 
-
-        }
+        if (WinPopup_Object) WinPopup_Object.SetActive(true);
 
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
 
-        DOTween.To(() => initAmount, (val) => initAmount = val, (int)amount, 5f).OnUpdate(() =>
+        DOTween.To(() => initAmount, (val) => initAmount = val, amount, 5f).OnUpdate(() =>
         {
-            if (jackpot)
-            {
-                if (jackpot_Text) jackpot_Text.text = initAmount.ToString();
-            }
-            else
-            {
-                if (Win_Text) Win_Text.text = initAmount.ToString();
-
-            }
+            if (Win_Text) Win_Text.text = initAmount.ToString("f2");
         });
 
-        DOVirtual.DelayedCall(6f, () =>
+        DOVirtual.DelayedCall(6.5f, () =>
         {
-            if (jackpot)
-            {
-                ClosePopup();
 
-            }
-            else
-            {
-                ClosePopup();
-            }
+            ClosePopup();
             slotManager.CheckPopups = false;
         });
     }
@@ -286,7 +266,7 @@ public class UIManager : MonoBehaviour
 
     internal void ADfunction()
     {
-        OpenPopup(ADPopup_Object); 
+        OpenPopup(ADPopup_Object);
     }
 
     private void PopulateSymbolsPayout(Paylines paylines)
@@ -344,71 +324,19 @@ public class UIManager : MonoBehaviour
         Application.ExternalCall("window.parent.postMessage", "onExit", "*");
     }
 
-    //private void OpenMenu()
-    //{
-    //   // audioController.PlayButtonAudio();
-    //   // if (Menu_Object) Menu_Object.SetActive(false);
-    //    if (Exit_Object) Exit_Object.SetActive(true);
-    //    if (About_Object) About_Object.SetActive(true);
-    //   // if (Paytable_Object) Paytable_Object.SetActive(true);
-    //    if (Settings_Object) Settings_Object.SetActive(true);
-
-    //    DOTween.To(() => About_RT.anchoredPosition, (val) => About_RT.anchoredPosition = val, new Vector2(About_RT.anchoredPosition.x, About_RT.anchoredPosition.y + 150), 0.1f).OnUpdate(() =>
-    //    {
-    //        LayoutRebuilder.ForceRebuildLayoutImmediate(About_RT);
-    //    });
-
-    //    //DOTween.To(() => Paytable_RT.anchoredPosition, (val) => Paytable_RT.anchoredPosition = val, new Vector2(Paytable_RT.anchoredPosition.x, Paytable_RT.anchoredPosition.y + 300), 0.1f).OnUpdate(() =>
-    //    //{
-    //    //    LayoutRebuilder.ForceRebuildLayoutImmediate(Paytable_RT);
-    //    //});
-
-    //    DOTween.To(() => Settings_RT.anchoredPosition, (val) => Settings_RT.anchoredPosition = val, new Vector2(Settings_RT.anchoredPosition.x, Settings_RT.anchoredPosition.y + 450), 0.1f).OnUpdate(() =>
-    //    {
-    //        LayoutRebuilder.ForceRebuildLayoutImmediate(Settings_RT);
-    //    });
-    //}
-
-    //private void CloseMenu()
-    //{
-
-    //    DOTween.To(() => About_RT.anchoredPosition, (val) => About_RT.anchoredPosition = val, new Vector2(About_RT.anchoredPosition.x, About_RT.anchoredPosition.y - 150), 0.1f).OnUpdate(() =>
-    //    {
-    //        LayoutRebuilder.ForceRebuildLayoutImmediate(About_RT);
-    //    });
-
-    //   // DOTween.To(() => Paytable_RT.anchoredPosition, (val) => Paytable_RT.anchoredPosition = val, new Vector2(Paytable_RT.anchoredPosition.x, Paytable_RT.anchoredPosition.y - 300), 0.1f).OnUpdate(() =>
-    //    //{
-    //    //    LayoutRebuilder.ForceRebuildLayoutImmediate(Paytable_RT);
-    //    //});
-
-    //    DOTween.To(() => Settings_RT.anchoredPosition, (val) => Settings_RT.anchoredPosition = val, new Vector2(Settings_RT.anchoredPosition.x, Settings_RT.anchoredPosition.y - 450), 0.1f).OnUpdate(() =>
-    //    {
-    //        LayoutRebuilder.ForceRebuildLayoutImmediate(Settings_RT);
-    //    });
-
-    //    DOVirtual.DelayedCall(0.1f, () =>
-    //    {
-    //       // if (Menu_Object) Menu_Object.SetActive(true);
-    //        if (Exit_Object) Exit_Object.SetActive(false);
-    //        if (About_Object) About_Object.SetActive(false);
-    //        //if (Paytable_Object) Paytable_Object.SetActive(false);
-    //        if (Settings_Object) Settings_Object.SetActive(false);
-    //    });
-    //}
 
     private void OpenPopup(GameObject Popup)
     {
-        if(audioController) audioController.PlayButtonAudio();
+        if (audioController) audioController.PlayButtonAudio();
         if (Popup) Popup.SetActive(true);
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
-        ActivePopup=Popup;
+        ActivePopup = Popup;
         paytableList[CurrentIndex = 0].SetActive(true);
     }
 
     private void ClosePopup()
     {
-        if(audioController) audioController.PlayButtonAudio();
+        if (audioController) audioController.PlayButtonAudio();
         if (ActivePopup) ActivePopup.SetActive(false);
         if (!DisconnectPopup_Object.activeSelf)
         {
@@ -421,7 +349,7 @@ public class UIManager : MonoBehaviour
 
     private void Slide(int direction)
     {
-        if(audioController) audioController.PlayButtonAudio();
+        if (audioController) audioController.PlayButtonAudio();
 
         if (CurrentIndex < paytableList.Length - 1 && direction > 0)
         {
@@ -430,7 +358,7 @@ public class UIManager : MonoBehaviour
             paytableList[CurrentIndex + 1].SetActive(true);
 
             CurrentIndex++;
-            
+
 
 
         }
@@ -445,16 +373,22 @@ public class UIManager : MonoBehaviour
 
 
         }
-        if(CurrentIndex==paytableList.Length - 1){
-            RightBtn.interactable=false;
-        }else{
-            RightBtn.interactable=true;
+        if (CurrentIndex == paytableList.Length - 1)
+        {
+            RightBtn.interactable = false;
+        }
+        else
+        {
+            RightBtn.interactable = true;
 
         }
-        if(CurrentIndex==0){
-            LeftBtn.interactable=false;
-        }else{
-            LeftBtn.interactable=true;
+        if (CurrentIndex == 0)
+        {
+            LeftBtn.interactable = false;
+        }
+        else
+        {
+            LeftBtn.interactable = true;
         }
 
 

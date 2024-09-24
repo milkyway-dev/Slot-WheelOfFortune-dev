@@ -18,21 +18,15 @@ public class SocketIOManager : MonoBehaviour
     [Header("scripts")]
     [SerializeField] private SlotManager slotManager;
     [SerializeField] private UIManager uIManager;
-
-    internal GameData initialData = null;
     internal UIData initUIData = null;
-    internal GameData resultData = null;
     internal PlayerData playerdata = null;
 
     internal SocketModel socketModel = new SocketModel();
 
     private Helper helper = new Helper();
 
-
-    [SerializeField]
-    internal List<string> bonusdata = null;
     //WebSocket currentSocket = null;
-    internal bool isResultdone = false;
+    [SerializeField]internal bool isResultdone = false;
 
     private SocketManager manager;
 
@@ -62,13 +56,15 @@ public class SocketIOManager : MonoBehaviour
     {
         isLoading = true;
         SetInit = false;
+        OpenSocket();
+
         // Debug.unityLogger.logEnabled = false;
     }
 
     private void Start()
     {
         //OpenWebsocket();
-        OpenSocket();
+        // OpenSocket();
     }
 
 
@@ -220,7 +216,6 @@ public class SocketIOManager : MonoBehaviour
 #else
         this.manager = new SocketManager(new Uri(SocketURI), options);
 #endif
-
         // Set subscriptions
         this.manager.Socket.On<ConnectResponse>(SocketIOEventTypes.Connect, OnConnected);
         this.manager.Socket.On<string>(SocketIOEventTypes.Disconnect, OnDisconnected);
@@ -238,7 +233,7 @@ public class SocketIOManager : MonoBehaviour
 
     // Connected event handler implementation
 
-    private void InitRequest(string eventName)
+    internal void InitRequest(string eventName)
     {
         InitData message = new InitData();
         message.Data = new AuthData();
@@ -270,10 +265,6 @@ public class SocketIOManager : MonoBehaviour
         // string id = myData.id;
         string messageId = resp["id"].ToString();
 
-        Debug.Log("message id " + messageId);
-
-
-
         var message = resp["message"];
         var gameData = message["GameData"];
         socketModel.playerData = message["PlayerData"].ToObject<PlayerData>();
@@ -282,95 +273,44 @@ public class SocketIOManager : MonoBehaviour
         {
             socketModel.uIData = message["UIData"].ToObject<UIData>();
             socketModel.initGameData.Bets = gameData["Bets"].ToObject<List<double>>();
+            socketModel.initGameData.Lines = gameData["Lines"].ToObject<List<List<int>>>();
+            socketModel.initGameData.BonusPayout = gameData["BonusPayout"].ToObject<List<int>>();
             isLoading = false;
-            Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
+            // Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
         }
         else if (messageId == "ResultData")
         {
             socketModel.resultGameData.ResultReel = helper.ConvertStringListsToIntLists(gameData["resultSymbols"].ToObject<List<List<string>>>());
             socketModel.resultGameData.linesToEmit = gameData["linestoemit"].ToObject<List<int>>();
+            socketModel.resultGameData.isbonus=gameData["isbonus"].ToObject<bool>();
+            socketModel.resultGameData.BonusIndex=gameData["BonusIndex"].ToObject<int>();
             isResultdone = true;
-            // socketModel.resultGameData.symbolsToEmit = gameData["symbolsToEmit"].ToObject<List<List<string>>>();
-            // socketModel.resultGameData.WinAmout = gameData["WinAmout"].ToObject<double>();
-            // socketModel.resultGameData.freeSpins = gameData["freeSpins"].ToObject<double>();
-            // socketModel.resultGameData.jackpot = gameData["jackpot"].ToObject<double>();
-            // socketModel.resultGameData.isBonus = gameData["isBonus"].ToObject<bool>();
-            // socketModel.resultGameData.BonusStopIndex = gameData["BonusStopIndex"].ToObject<double>();
             print("result data: " + JsonConvert.SerializeObject(socketModel.resultGameData.ResultReel));
 
         }
-        // switch (id)
-        // {
-        //     case "InitData":
-        //         {
-        //             initialData = myData.message.GameData;
-        //             initUIData = myData.message.UIData;
-        //             playerdata = myData.message.PlayerData;
-        //             bonusdata = myData.message.BonusData;
-        //             if (!SetInit)
-        //             {
-        //                 Debug.Log(jsonObject);
-        //                 List<string> LinesString = ConvertListListIntToListString(initialData.Lines);
-        //                 List<string> InitialReels = ConvertListOfListsToStrings(initialData.Reel);
-        //                 InitialReels = RemoveQuotes(InitialReels);
-        //                 PopulateSlotSocket(InitialReels, LinesString);
-        //                 SetInit = true;
-        //             }
-        //             else
-        //             {
-        //                 RefreshUI();
-        //             }
-        //             break;
-        //         }
-        //     case "ResultData":
-        //         {
-        //             Debug.Log(jsonObject);
-        //             myData.message.GameData.FinalResultReel = ConvertListOfListsToStrings(myData.message.GameData.ResultReel);
-        //             myData.message.GameData.FinalsymbolsToEmit = TransformAndRemoveRecurring(myData.message.GameData.symbolsToEmit);
-        //             resultData = myData.message.GameData;
-        //             playerdata = myData.message.PlayerData;
-        //             isResultdone = true;
-        //             break;
-        //         }
-        // }
     }
 
-    private void RefreshUI()
-    {
-        uIManager.InitialiseUIData(initUIData.AbtLogo.link, initUIData.AbtLogo.logoSprite, initUIData.ToULink, initUIData.PopLink, initUIData.paylines);
-    }
-    private void PopulateSlotSocket(List<string> slotPop, List<string> LineIds)
-    {
-        slotManager.shuffleInitialMatrix();
-        for (int i = 0; i < LineIds.Count; i++)
-        {
-            slotManager.FetchLines(LineIds[i], i);
-        }
+    // private void RefreshUI()
+    // {
+    //     uIManager.InitialiseUIData(initUIData.AbtLogo.link, initUIData.AbtLogo.logoSprite, initUIData.ToULink, initUIData.PopLink, initUIData.paylines);
+    // }
 
-        // slotManager.SetInitialUI();
-        isLoading = false;
+    // private void PopulateSlotSocket(List<string> slotPop, List<string> LineIds)
+    // {
+    //     slotManager.shuffleInitialMatrix();
+    //     for (int i = 0; i < LineIds.Count; i++)
+    //     {
+    //         slotManager.FetchLines(LineIds[i], i);
+    //     }
 
-        Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
-    }
+    //     // slotManager.SetInitialUI();
+    //     isLoading = false;
 
-    internal void AccumulateResult(double currBet)
-    {
-        isResultdone = false;
-        MessageData message = new MessageData();
-        message.data = new BetData();
-        message.data.currentBet = currBet;
-        message.data.spins = 1;
-        message.data.currentLines = 20;
-        message.id = "SPIN";
-
-        // Serialize message data to JSON
-        string json = JsonConvert.SerializeObject(message);
-        SendData("message", json);
-    }
+    //     // Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
+    // }
 
     internal void SendData(string eventName, object message = null)
     {
-        isResultdone = false;
         string json = JsonConvert.SerializeObject(message);
 
         if (this.manager.Socket == null || !this.manager.Socket.IsOpen)
@@ -383,72 +323,14 @@ public class SocketIOManager : MonoBehaviour
             this.manager.Socket.Emit(eventName);
             return;
         }
+        isResultdone = false;
         this.manager.Socket.Emit(eventName, json);
         Debug.Log("JSON data sent: " + json);
 
     }
 
-    private List<string> RemoveQuotes(List<string> stringList)
-    {
-        for (int i = 0; i < stringList.Count; i++)
-        {
-            stringList[i] = stringList[i].Replace("\"", ""); // Remove inverted commas
-        }
-        return stringList;
-    }
 
-    private List<string> ConvertListListIntToListString(List<List<int>> listOfLists)
-    {
-        List<string> resultList = new List<string>();
 
-        foreach (List<int> innerList in listOfLists)
-        {
-            List<string> stringList = new List<string>();
-            foreach (int number in innerList)
-            {
-                stringList.Add(number.ToString());
-            }
-            string joinedString = string.Join(",", stringList.ToArray()).Trim();
-            resultList.Add(joinedString);
-        }
-
-        return resultList;
-    }
-
-    private List<string> ConvertListOfListsToStrings(List<List<string>> inputList)
-    {
-        List<string> outputList = new List<string>();
-
-        foreach (List<string> row in inputList)
-        {
-            string concatenatedString = string.Join(",", row);
-            outputList.Add(concatenatedString);
-        }
-
-        return outputList;
-    }
-
-    private List<string> TransformAndRemoveRecurring(List<List<string>> originalList)
-    {
-        // Flattened list
-        List<string> flattenedList = new List<string>();
-        foreach (List<string> sublist in originalList)
-        {
-            flattenedList.AddRange(sublist);
-        }
-
-        // Remove recurring elements
-        HashSet<string> uniqueElements = new HashSet<string>(flattenedList);
-
-        // Transformed list
-        List<string> transformedList = new List<string>();
-        foreach (string element in uniqueElements)
-        {
-            transformedList.Add(element.Replace(",", ""));
-        }
-
-        return transformedList;
-    }
 }
 
 

@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private SlotManager slotManager;
     [SerializeField] private SocketIOManager socketManager;
+    [SerializeField] private UIManager uIManager;
+    [SerializeField] private BonusManager bonusManager;
     [Header("Buttons")]
     [SerializeField] private Button SlotStart_Button;
     [SerializeField] private Button AutoSpin_Button;
@@ -21,19 +23,40 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<int> LineId;
     [SerializeField] private List<string> points_AnimString;
 
-    private int BetCounter;
-    void Start()
+    [SerializeField] private int BetCounter = 0;
+
+    private double currentBalance = 0;
+    private double currentTotalBet = 0;
+    private void Start()
     {
+
         ErrorHandler.RunSafely(() =>
         {
-            socketManager.OpenSocket();
-            SlotStart_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartSpin, OnError));
-            AutoSpin_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StartAutoSpin, OnError));
-            AutoSpinStop_Button.onClick.AddListener(() => ErrorHandler.RunSafely(StopAutoSpin, OnError));
-            slotManager.shuffleInitialMatrix();
-            slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
+            StartCoroutine(ErrorHandler.RunSafely(StartGameRouitne(),OnError));
 
         }, OnError);
+    }
+    IEnumerator StartGameRouitne()
+    {
+
+        socketManager.OpenSocket();
+        yield return new WaitUntil(() => !socketManager.isLoading);
+
+        SlotStart_Button.onClick.AddListener(StartSpin);
+        AutoSpin_Button.onClick.AddListener(StartAutoSpin);
+        AutoSpinStop_Button.onClick.AddListener(StopAutoSpin);
+        slotManager.shuffleInitialMatrix();
+        slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
+        CompareBalance();
+        BetPlus_Button.onClick.AddListener(delegate { OnBetChange(true); });
+        BetMinus_Button.onClick.AddListener(delegate { OnBetChange(false); });
+        slotManager.UpdateBetText(socketManager.socketModel.initGameData.Bets[BetCounter], socketManager.socketModel.initGameData.Lines.Count);
+        currentTotalBet=socketManager.socketModel.initGameData.Bets[BetCounter]*socketManager.socketModel.initGameData.Lines.Count;
+        currentBalance=socketManager.socketModel.playerData.Balance;
+        bonusManager.values=socketManager.socketModel.initGameData.BonusPayout;
+        Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
+
+        //  uIManager.InitialiseUIData(SocketManager.initUIData.AbtLogo.link, SocketManager.initUIData.AbtLogo.logoSprite, SocketManager.initUIData.ToULink, SocketManager.initUIData.PopLink, SocketManager.initUIData.paylines);
     }
 
     void StartAutoSpin()
@@ -79,13 +102,14 @@ public class GameManager : MonoBehaviour
     }
 
 
-void OnBetChange(bool IncDec){
+    void OnBetChange(bool IncDec)
+    {
 
         // if (audioController) audioController.PlayButtonAudio();
 
         if (IncDec)
         {
-            if (socketManager.socketModel.initGameData.Bets.Count < 10)
+            if (BetCounter < socketManager.socketModel.initGameData.Bets.Count - 1)
             {
                 BetCounter++;
             }
@@ -97,13 +121,13 @@ void OnBetChange(bool IncDec){
                 BetCounter--;
             }
         }
+        // TODO: WF to be done
+        currentTotalBet=socketManager.socketModel.initGameData.Bets[BetCounter]*socketManager.socketModel.initGameData.Lines.Count;
 
-// TODO: WF to be done
-        // if (BetPerLine_text) BetPerLine_text.text = socketManager.socketModel.initGameData.Bets[BetCounter].ToString();
-        // if (TotalBet_text) TotalBet_text.text = (socketManager.socketModel.initGameData.Bets[BetCounter]*3).ToString();
+        slotManager.UpdateBetText(socketManager.socketModel.initGameData.Bets[BetCounter], socketManager.socketModel.initGameData.Lines.Count);
+        CompareBalance();
 
-        // slotManager.UpdateBetText(socketManager.socketModel.initGameData.Bets[BetCounter]);
-}
+    }
 
 
     bool OnSpinStart()
@@ -114,13 +138,13 @@ void OnBetChange(bool IncDec){
             slotManager.StopGameAnimation();
             slotManager.WinningsAnim(false);
             slotManager.ResetLines();
-            bool start = slotManager.CompareBalance();
+            bool start = CompareBalance();
             if (start)
             {
-                var spinData = new { data = new { currentBet = 0, currentLines = 20, spins = 1 }, id = "SPIN" };
+                var spinData = new { data = new { currentBet = BetCounter, currentLines = socketManager.socketModel.initGameData.Lines.Count, spins = 1 }, id = "SPIN" };
                 socketManager.SendData("message", spinData);
+                slotManager.ToggleButtonGrp(false);
             }
-            slotManager.ToggleButtonGrp(false);
             return start;
 
         }, OnError);
@@ -130,23 +154,44 @@ void OnBetChange(bool IncDec){
     {
         ErrorHandler.RunSafely(() =>
         {
+            
             slotManager.InitiateForAnimation(result);
             slotManager.BalanceDeduction();
         }, OnError);
     }
 
-    void OnSpinEnd()
+    IEnumerator OnSpinEnd()
     {
-        ErrorHandler.RunSafely(() =>
-        {
+
+            currentBalance=socketManager.socketModel.playerData.Balance;
             slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
             slotManager.ProcessPayoutLines(LineId);
             // TODO: WF enable animation
             // slotManager.ProcessPointsAnimations(points_AnimString);
+            if(socketManager.socketModel.resultGameData.isbonus){
+                bonusManager.targetIndex=socketManager.socketModel.resultGameData.BonusIndex;
+                bonusManager.multipler=socketManager.socketModel.initGameData.Lines.Count;
+                bonusManager.StartBonus();
+                yield return new WaitUntil(()=>!bonusManager.isBonusPlaying);
+            }
+            else if(socketManager.socketModel.playerData.currentWining>0){
+                int wintype=CheckWinPopups(socketManager.socketModel.playerData.currentWining);
+
+                if(wintype>0){
+                    bool checking=true;
+                    uIManager.PopulateWin(wintype,socketManager.socketModel.playerData.currentWining,(state)=>checking=state);
+                    yield return new WaitUntil(()=>!checking);
+                }
+
+                slotManager.WinningsAnim(true);
+                yield return new WaitUntil(()=>!bonusManager.isBonusPlaying);
+
+            }
             if (!IsAutoSpin) slotManager.ToggleButtonGrp(true);
 
+            yield return null;
 
-        }, OnError);
+        ;
     }
 
     IEnumerator SpinRoutine()
@@ -156,7 +201,6 @@ void OnBetChange(bool IncDec){
         bool start = OnSpinStart();
         if (!start)
         {
-
             OnSpinEnd();
             yield break;
         }
@@ -166,12 +210,12 @@ void OnBetChange(bool IncDec){
         yield return new WaitForSeconds(0.5f);
         yield return ErrorHandler.RunSafely(slotManager.TerminateSpin(), OnError);
         if (!IsAutoSpin) IsSpinning = false;
-        OnSpinEnd();
+        yield return ErrorHandler.RunSafely(OnSpinEnd(),OnError);
     }
 
     IEnumerator AutoSpinRoutine()
     {
-        WaitForSeconds delay = new WaitForSeconds(2f);
+        WaitForSeconds delay = new WaitForSeconds(1.2f);
 
         while (IsAutoSpin)
         {
@@ -184,7 +228,47 @@ void OnBetChange(bool IncDec){
 
     void OnError()
     {
-
         slotManager.KillAllTweens();
+    }
+
+
+    private bool CompareBalance()
+    {
+        if (currentBalance < currentTotalBet)
+        {
+            uIManager.LowBalPopup();
+            if (AutoSpin_Button) AutoSpin_Button.interactable = false;
+            if (SlotStart_Button) SlotStart_Button.interactable = false;
+            return false;
+        }
+        else
+        {
+            if (AutoSpin_Button) AutoSpin_Button.interactable = true;
+            if (SlotStart_Button) SlotStart_Button.interactable = true;
+            return true;
+
+        }
+    }
+
+
+    internal int  CheckWinPopups(double WinAmout)
+    {
+        if (WinAmout >= currentTotalBet * 10 && WinAmout < currentTotalBet * 15)
+        {
+            return 1;
+        }
+        else if (WinAmout >= currentTotalBet * 15 && WinAmout < currentTotalBet * 20)
+        {
+            return 2;
+
+        }
+        else if (WinAmout >= currentTotalBet * 20)
+        {
+            return 3;
+        }else{
+
+            return 0;
+        }
+
     }
 }

@@ -63,31 +63,15 @@ public class AbtLogo
     public string link { get; set; }
 }
 
-[Serializable]
-public class GameData
-{
-    public List<List<string>> Reel { get; set; }
-    public List<List<int>> Lines { get; set; }
-    public List<double> Bets { get; set; }
-    public bool canSwitchLines { get; set; }
-    public List<int> LinesCount { get; set; }
-    public List<int> autoSpin { get; set; }
-    // public List<List<string>> ResultReel { get; set; }
-    public List<int> linesToEmit { get; set; }
-    public List<List<string>> symbolsToEmit { get; set; }
-    public double WinAmout { get; set; }
-    public FreeSpins freeSpins { get; set; }
-    public List<string> FinalsymbolsToEmit { get; set; }
-    public List<string> FinalResultReel { get; set; }
-    public double jackpot { get; set; }
-    public bool isBonus { get; set; }
-    public double BonusStopIndex { get; set; }
-}
+
 
 [Serializable]
 public class InitGameData
 {
     public List<double> Bets { get; set; }
+    public List<List<int>> Lines { get; set; }
+
+    public List<int> BonusPayout {get; set;}
 }
 
 [Serializable]
@@ -100,8 +84,8 @@ public class ResultGameData
     public double WinAmout { get; set; }
     // public FreeSpins freeSpins { get; set; }
     public double jackpot { get; set; }
-    public bool isBonus { get; set; }
-    public double BonusStopIndex { get; set; }
+    public bool isbonus { get; set; }
+    public int BonusIndex { get; set; }
 }
 
 [Serializable]
