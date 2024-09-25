@@ -28,8 +28,11 @@ public class BonusManager : MonoBehaviour
     [SerializeField] private GameObject lightOff;
 
     [SerializeField] private Button Spin_Button;
+
+    [SerializeField] private TMP_Text betPerLineText;
     internal int targetIndex;
     internal double multipler;
+
 
     internal bool isBonusPlaying=false;
     void Start()
@@ -46,8 +49,9 @@ public class BonusManager : MonoBehaviour
         bonusPanel.SetActive(true);
         for (int i = 0; i < valueTextList.Length; i++)
         {
-            valueTextList[i].text = values[i].ToString();
+            valueTextList[i].text = $"x {values[i].ToString()}";
         }
+        betPerLineText.text=multipler.ToString();
         isBonusPlaying=true;
     }
     private void OnSpinStart()
@@ -98,7 +102,6 @@ public class BonusManager : MonoBehaviour
             {
                 rotationTween.Kill();
                 rotationTween=null;
-                Debug.Log(targetAngle);
                 rotator.DOLocalRotate(new Vector3(0, 0, targetAngle - offSet), 0.25f).SetEase(Ease.Linear);
                 CancelInvoke(nameof(LightAnimation));
                 lightOff.SetActive(false);
@@ -121,16 +124,10 @@ public class BonusManager : MonoBehaviour
         {
             winPopup.SetActive(false);
             bonusPanel.SetActive(false);
-            // winText.text = "";
+            winText.text = "";
             lightOff.SetActive(true);
             Spin_Button.interactable = true;
             isBonusPlaying=false;
-            // for (int i = 0; i < valueTextList.Length; i++)
-            // {
-            //     valueTextList[i].text = "";
-            // }
-            // values.Clear();
-
         });
         
     }

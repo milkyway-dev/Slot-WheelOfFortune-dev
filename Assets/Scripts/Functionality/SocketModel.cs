@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Runtime.Serialization;
 
 internal class SocketModel
 {
@@ -42,12 +41,6 @@ public class AuthData
     //public double TotalLines;
 }
 
-[Serializable]
-public class MessageData
-{
-    public BetData data;
-    public string id;
-}
 
 [Serializable]
 public class InitData
@@ -72,6 +65,7 @@ public class InitGameData
     public List<List<int>> Lines { get; set; }
 
     public List<int> BonusPayout {get; set;}
+
 }
 
 [Serializable]
@@ -117,33 +111,9 @@ public class Symbol
 {
     public int ID { get; set; }
     public string Name { get; set; }
-    [JsonProperty("multiplier")]
-    public object MultiplierObject { get; set; }
-
-    // This property will hold the properly deserialized list of lists of integers
-    [JsonIgnore]
-    public List<List<int>> Multiplier { get; private set; }
-
-    // Custom deserialization method to handle the conversion
-    [OnDeserialized]
-    internal void OnDeserializedMethod(StreamingContext context)
-    {
-        // Handle the case where multiplier is an object (empty in JSON)
-        if (MultiplierObject is JObject)
-        {
-            Multiplier = new List<List<int>>();
-        }
-        else
-        {
-            // Deserialize normally assuming it's an array of arrays
-            Multiplier = JsonConvert.DeserializeObject<List<List<int>>>(MultiplierObject.ToString());
-        }
-    }
-    public object defaultAmount { get; set; }
-    public object symbolsCount { get; set; }
-    public object increaseValue { get; set; }
+    public JToken payout { get; set; }
     public object description { get; set; }
-    public int freeSpin { get; set; }
+    // public int freeSpin { get; set; }
 }
 
 [Serializable]

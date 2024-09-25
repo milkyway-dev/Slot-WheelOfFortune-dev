@@ -16,6 +16,7 @@ public class AudioController : MonoBehaviour
     [SerializeField] private AudioClip Button;
     [SerializeField] private AudioClip Win_Audio;
     [SerializeField] private AudioClip NormalBg_Audio;
+    [SerializeField] private AudioClip BonusBg_Audio;
 
     private void Awake()
     {
@@ -75,22 +76,26 @@ public class AudioController : MonoBehaviour
         }
         else
         {
-            if (!bg_adudio.mute) bg_adudio.Play();
-            if (!audioPlayer_wl.mute) audioPlayer_wl.Play();
-            if (!audioPlayer_button.mute) audioPlayer_button.Play();
+            if (!bg_adudio.mute) bg_adudio.UnPause();
+            if (!audioPlayer_wl.mute) audioPlayer_wl.UnPause();
+            if (!audioPlayer_button.mute) audioPlayer_button.UnPause();
 
         }
     }
 
 
 
-    internal void playBgAudio()
+    internal void playBgAudio(string type="default")
     {
 
 
         //int randomIndex = UnityEngine.Random.Range(0, Bg_Audio.Length);
+        StopBgAudio();
         if (bg_adudio)
         {
+            if(type=="bonus")
+            bg_adudio.clip = BonusBg_Audio;
+            else
             bg_adudio.clip = NormalBg_Audio;
 
 

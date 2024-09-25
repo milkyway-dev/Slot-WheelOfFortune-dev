@@ -306,12 +306,13 @@ public class SlotManager : MonoBehaviour
     }
 
 
-    internal void ResetLines()
+    internal void ResetLinesAndWins()
     {
         foreach (Transform child in LineContainer)
         {
             Destroy(child.gameObject);
         }
+        TotalWin_text.text="0";
     }
     //manage the Routine for spinning of the slots
 
@@ -337,6 +338,22 @@ public class SlotManager : MonoBehaviour
         Balance_text.text = playerData.Balance.ToString();
 
     }
+
+
+    internal IEnumerator InitiateSpin()
+    {
+        WaitForSeconds delay = new WaitForSeconds(0.2f);
+        Tweener tweener = null;
+        for (int i = 0; i < Slot_Transform.Length; i++)
+        {
+            tweener = Slot_Transform[i].DOLocalMoveY(-tweenHeight, 0.45f, false).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
+            // tweener.Play();
+            alltweens.Add(tweener);
+            // InitializeTweening(Slot_Transform[i]);
+            yield return delay;
+        }
+    }
+
     internal IEnumerator TerminateSpin()
     {
         WaitForSeconds delay = new WaitForSeconds(0.3f);
@@ -345,27 +362,13 @@ public class SlotManager : MonoBehaviour
         {
             alltweens[i].Pause();
             Slot_Transform[i].localPosition = new Vector2(Slot_Transform[i].localPosition.x, 0);
-            alltweens[i] = Slot_Transform[i].DOLocalMoveY(stopPosition, 0.3f).SetEase(Ease.OutElastic);
+            alltweens[i] = Slot_Transform[i].DOLocalMoveY(stopPosition, 0.2f).SetEase(Ease.OutExpo);
             yield return delay;
             alltweens[i].Kill();
             // yield return StopTweening(Slot_Transform[i], i);
         }
         alltweens.Clear();
         // KillAllTweens();
-    }
-
-    internal IEnumerator InitiateSpin()
-    {
-        WaitForSeconds delay = new WaitForSeconds(0.2f);
-        Tweener tweener = null;
-        for (int i = 0; i < Slot_Transform.Length; i++)
-        {
-            tweener = Slot_Transform[i].DOLocalMoveY(-tweenHeight, 0.5f, false).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
-            // tweener.Play();
-            alltweens.Add(tweener);
-            // InitializeTweening(Slot_Transform[i]);
-            yield return delay;
-        }
     }
 
 
@@ -394,14 +397,13 @@ public class SlotManager : MonoBehaviour
 
     internal void shuffleInitialMatrix()
     {
-        // int randomIndex = UnityEngine.Random.Range(1, myImages.Length);
         for (int i = 0; i < slotmatrix.Count; i++)
         {
 
             for (int j = 0; j < slotmatrix[i].slotImages.Count; j++)
             {
 
-                slotmatrix[i].slotImages[j].sprite = myImages[UnityEngine.Random.Range(0, myImages.Length)];
+                slotmatrix[i].slotImages[j].sprite = myImages[UnityEngine.Random.Range(1, myImages.Length)];
 
             }
 

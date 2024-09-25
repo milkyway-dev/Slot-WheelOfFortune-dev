@@ -7,25 +7,23 @@ using System.Linq;
 using TMPro;
 using System;
 using UnityEngine.Networking;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public class UIManager : MonoBehaviour
 {
 
-
-
-    [SerializeField] private Button About_Button;
-
     [Header("Popus UI")]
-    [SerializeField] private GameObject PopUpPanel;
     [SerializeField] private GameObject MainPopup_Object;
 
-    [Header("About Popup")]
-    [SerializeField] private GameObject AboutPopup_Object;
-    [SerializeField] private Button AboutExit_Button;
+
     [Header("Paytable Texts")]
     [SerializeField] private TMP_Text[] SymbolsText;
-    [SerializeField] private TMP_Text Scatter_Text;
-    [SerializeField] private TMP_Text Wild_Text;
+    [SerializeField] private TMP_Text Bonus_Text;
+    [SerializeField] private Button PaytableExit_Button;
+    [SerializeField] private Button Paytable_Button;
+    [SerializeField] private GameObject Paytable_Object;
+
 
     [Header("Settings Popup")]
     [SerializeField] private GameObject SettingsPopup_Object;
@@ -37,17 +35,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button MusicOff_Button;
 
     [Header("all Win Popup")]
-    [SerializeField] private Sprite BigWin_Sprite;
-    [SerializeField] private Sprite HugeWin_Sprite;
-    [SerializeField] private Sprite MegaWin_Sprite;
     [SerializeField] private TMP_Text Win_text_title;
     [SerializeField] private GameObject WinPopup_Object;
     [SerializeField] private TMP_Text Win_Text;
-
-
-    [Header("jackpot Win Popup")]
-    [SerializeField] private TMP_Text jackpot_Text;
-    [SerializeField] private GameObject jackpot_Object;
 
 
     [Header("low balance popup")]
@@ -112,24 +102,29 @@ public class UIManager : MonoBehaviour
 
         SetButton(yes_Button, CallOnExitFunction);
         SetButton(no_Button, () => ClosePopup());
-        SetButton(GameExit_Button, () => OpenPopup(quitPopupObject));
-        SetButton(About_Button, () => OpenPopup(AboutPopup_Object));
-        SetButton(AboutExit_Button, () => ClosePopup());
-        SetButton(Settings_Button, () => OpenPopup(SettingsPopup_Object));
+        SetButton(GameExit_Button, () => OpenPopup(quitPopupObject,true));
+
+        SetButton(Settings_Button, () => OpenPopup(SettingsPopup_Object,true));
         SetButton(SettingsExit_Button, () => ClosePopup());
+
+        SetButton(Paytable_Button, () => OpenPopup(Paytable_Object,true));
+        SetButton(PaytableExit_Button, () => ClosePopup());
+
         SetButton(MusicOn_Button, ToggleMusic);
         SetButton(MusicOff_Button, ToggleMusic);
         SetButton(SoundOn_Button, ToggleSound);
         SetButton(SoundOff_Button, ToggleSound);
+
         SetButton(LeftBtn, () => Slide(-1));
         SetButton(RightBtn, () => Slide(1));
+
         SetButton(CloseDisconnect_Button, CallOnExitFunction);
         SetButton(Close_Button, () => ClosePopup());
         SetButton(QuitSplash_button, () => OpenPopup(quitPopupObject));
-        isMusic = false;
-        isSound = false;
-        ToggleMusic();
-        ToggleSound();
+        // isMusic = false;
+        // isSound = false;
+        // ToggleMusic();
+        // ToggleSound();
 
 
     }
@@ -142,8 +137,8 @@ public class UIManager : MonoBehaviour
             button.onClick.AddListener(() => action());
         }
     }
-    internal void PopulateWin(int value, double amount,Action<bool> isDone)
-    {   
+    internal void PopulateWin(int value, double amount, Action<bool> isDone)
+    {
         switch (value)
         {
             case 1:
@@ -155,7 +150,6 @@ public class UIManager : MonoBehaviour
             case 3:
                 if (Win_text_title) Win_text_title.text = "Mega WIn";
                 break;
-
         }
 
         double initAmount = 0;
@@ -176,7 +170,6 @@ public class UIManager : MonoBehaviour
             slotManager.CheckPopups = false;
             isDone(false);
         });
-        // StartPopupAnim(amount);
 
     }
 
@@ -206,41 +199,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    //private void StartFreeSpins(int spins)
-    //{
-    //    if (MainPopup_Object) MainPopup_Object.SetActive(false);
-    //  //  if (FreeSpinPopup_Object) FreeSpinPopup_Object.SetActive(false);
-    //    //slotManager.FreeSpin(spins);
-    //}
 
-    //internal void FreeSpinProcess(int spins)
-    //{
-    //    FreeSpins = spins;
-    //    //if (FreeSpinPopup_Object) FreeSpinPopup_Object.SetActive(true);
-    //    //if (Free_Text) Free_Text.text = spins.ToString();
-    //    if (MainPopup_Object) MainPopup_Object.SetActive(true);
-    //}
-
-    private void StartPopupAnim(double amount)
-    {
-        double initAmount = 0;
-
-        if (WinPopup_Object) WinPopup_Object.SetActive(true);
-
-        if (MainPopup_Object) MainPopup_Object.SetActive(true);
-
-        DOTween.To(() => initAmount, (val) => initAmount = val, amount, 5f).OnUpdate(() =>
-        {
-            if (Win_Text) Win_Text.text = initAmount.ToString("f2");
-        });
-
-        DOVirtual.DelayedCall(6.5f, () =>
-        {
-
-            ClosePopup();
-            slotManager.CheckPopups = false;
-        });
-    }
 
     internal void LowBalPopup()
     {
@@ -248,19 +207,27 @@ public class UIManager : MonoBehaviour
         OpenPopup(LowBalancePopup_Object);
     }
 
-    internal void InitialiseUIData(string SupportUrl, string AbtImgUrl, string TermsUrl, string PrivacyUrl, Paylines symbolsText)
+    internal void InitialiseUIData(Paylines paylines)
     {
-        //if (Support_Button) Support_Button.onClick.RemoveAllListeners();
-        //if (Support_Button) Support_Button.onClick.AddListener(delegate { UrlButtons(SupportUrl); });
+        for (int i = 0; i < SymbolsText.Length; i++)
+        {
+            string text = "";
+            if (paylines.symbols[i].payout.Type != JTokenType.Object)
+            {
+                text += paylines.symbols[i].payout + "x";
+            }
 
-        //if (Terms_Button) Terms_Button.onClick.RemoveAllListeners();
-        //if (Terms_Button) Terms_Button.onClick.AddListener(delegate { UrlButtons(TermsUrl); });
+            if (SymbolsText[i]) SymbolsText[i].text = text;
+        }
 
-        //if (Privacy_Button) Privacy_Button.onClick.RemoveAllListeners();
-        //if (Privacy_Button) Privacy_Button.onClick.AddListener(delegate { UrlButtons(PrivacyUrl); });
+        for (int i = 0; i < paylines.symbols.Count; i++)
+        {
 
-        //StartCoroutine(DownloadImage(AbtImgUrl));
-        // PopulateSymbolsPayout(symbolsText);
+            if (paylines.symbols[i].Name.ToUpper() == "BONUS")
+            {
+                if (Bonus_Text) Bonus_Text.text = paylines.symbols[i].description.ToString();
+            }
+        }
         //PopulateSpecialSymbols(Specialsymbols);
     }
 
@@ -271,48 +238,7 @@ public class UIManager : MonoBehaviour
 
     private void PopulateSymbolsPayout(Paylines paylines)
     {
-        for (int i = 0; i < SymbolsText.Length; i++)
-        {
-            string text = null;
-            if (paylines.symbols[i].Multiplier[0][0] != 0)
-            {
-                text += "5x - " + paylines.symbols[i].Multiplier[0][0];
-            }
-            if (paylines.symbols[i].Multiplier[1][0] != 0)
-            {
-                text += "\n4x - " + paylines.symbols[i].Multiplier[1][0];
-            }
-            if (paylines.symbols[i].Multiplier[2][0] != 0)
-            {
-                text += "\n3x - " + paylines.symbols[i].Multiplier[2][0];
-            }
-            if (SymbolsText[i]) SymbolsText[i].text = text;
-        }
 
-        for (int i = 0; i < paylines.symbols.Count; i++)
-        {
-
-            if (paylines.symbols[i].Name.ToUpper() == "SCATTER")
-            {
-                if (Scatter_Text) Scatter_Text.text = paylines.symbols[i].description.ToString();
-            }
-
-            if (paylines.symbols[i].Name.ToUpper() == "WILD")
-            {
-                if (Wild_Text) Wild_Text.text = paylines.symbols[i].description.ToString();
-            }
-        }
-
-        // for (int i = 0; i < paylines.symbols.Count; i++)
-        // {
-
-        //     if (paylines.symbols[i].Name.ToUpper() == "SCATTER")
-        //     {
-        //        Scatter_Text.text = "Offers higher pay outs and awards.\nPayout:\n <color=#ED5B04>5x - " + paylines.symbols[i].Multiplier[0][0]+ "</color >\n" + "<color=#ED5B04>4x - " + paylines.symbols[i].Multiplier[1][0] + "</color >\n" + "<color=#ED5B04> 3x - " + paylines.symbols[i].Multiplier[2][0] + "</color >";
-        //     }
-
-
-        // }
     }
 
     private void CallOnExitFunction()
@@ -320,23 +246,25 @@ public class UIManager : MonoBehaviour
         isExit = true;
         audioController.PlayButtonAudio();
         socketManager.CloseSocket();
-        //slotManager.CallCloseSocket();
         Application.ExternalCall("window.parent.postMessage", "onExit", "*");
     }
 
 
-    private void OpenPopup(GameObject Popup)
+    private void OpenPopup(GameObject Popup,bool playAudio=false)
     {
-        if (audioController) audioController.PlayButtonAudio();
+        if(playAudio)
+        audioController.PlayButtonAudio();
+
         if (Popup) Popup.SetActive(true);
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
         ActivePopup = Popup;
         paytableList[CurrentIndex = 0].SetActive(true);
     }
 
-    private void ClosePopup()
+    private void ClosePopup(bool playAudio=false)
     {
-        if (audioController) audioController.PlayButtonAudio();
+        if(playAudio)
+        audioController.PlayButtonAudio();
         if (ActivePopup) ActivePopup.SetActive(false);
         if (!DisconnectPopup_Object.activeSelf)
         {
@@ -409,10 +337,6 @@ public class UIManager : MonoBehaviour
 
     private void ToggleMusic()
     {
-        //private Button SoundOn_Button;
-        //private Button SoundOff_Button;
-        //private Button MusicOn_Button;
-        //private Button MusicOff_Button;
         isMusic = !isMusic;
         if (isMusic)
         {
@@ -447,33 +371,4 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void UrlButtons(string url)
-    {
-        Application.OpenURL(url);
-    }
-
-
-    private IEnumerator DownloadImage(string url)
-    {
-        // Create a UnityWebRequest object to download the image
-        UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
-
-        // Wait for the download to complete
-        yield return request.SendWebRequest();
-
-        // Check for errors
-        if (request.result == UnityWebRequest.Result.Success)
-        {
-            Texture2D texture = DownloadHandlerTexture.GetContent(request);
-
-            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-
-            // Apply the sprite to the target image
-            //  AboutLogo_Image.sprite = sprite;
-        }
-        else
-        {
-            Debug.LogError("Error downloading image: " + request.error);
-        }
-    }
 }

@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private SocketIOManager socketManager;
     [SerializeField] private UIManager uIManager;
     [SerializeField] private BonusManager bonusManager;
+    [SerializeField] private AudioController audioController;
     [Header("Buttons")]
     [SerializeField] private Button SlotStart_Button;
     [SerializeField] private Button AutoSpin_Button;
@@ -27,7 +28,8 @@ public class GameManager : MonoBehaviour
 
     private double currentBalance = 0;
     private double currentTotalBet = 0;
-    private void Start()
+
+    private void Start()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
     {
 
         ErrorHandler.RunSafely(() =>
@@ -41,7 +43,6 @@ public class GameManager : MonoBehaviour
 
         socketManager.OpenSocket();
         yield return new WaitUntil(() => !socketManager.isLoading);
-
         SlotStart_Button.onClick.AddListener(StartSpin);
         AutoSpin_Button.onClick.AddListener(StartAutoSpin);
         AutoSpinStop_Button.onClick.AddListener(StopAutoSpin);
@@ -54,9 +55,8 @@ public class GameManager : MonoBehaviour
         currentTotalBet=socketManager.socketModel.initGameData.Bets[BetCounter]*socketManager.socketModel.initGameData.Lines.Count;
         currentBalance=socketManager.socketModel.playerData.Balance;
         bonusManager.values=socketManager.socketModel.initGameData.BonusPayout;
+        uIManager.InitialiseUIData( socketManager.socketModel.uIData.paylines);
         Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
-
-        //  uIManager.InitialiseUIData(SocketManager.initUIData.AbtLogo.link, SocketManager.initUIData.AbtLogo.logoSprite, SocketManager.initUIData.ToULink, SocketManager.initUIData.PopLink, SocketManager.initUIData.paylines);
     }
 
     void StartAutoSpin()
@@ -137,7 +137,7 @@ public class GameManager : MonoBehaviour
 
             slotManager.StopGameAnimation();
             slotManager.WinningsAnim(false);
-            slotManager.ResetLines();
+            slotManager.ResetLinesAndWins();
             bool start = CompareBalance();
             if (start)
             {
@@ -154,7 +154,6 @@ public class GameManager : MonoBehaviour
     {
         ErrorHandler.RunSafely(() =>
         {
-            
             slotManager.InitiateForAnimation(result);
             slotManager.BalanceDeduction();
         }, OnError);
@@ -162,7 +161,7 @@ public class GameManager : MonoBehaviour
 
     IEnumerator OnSpinEnd()
     {
-
+            audioController.StopSpinAudio();
             currentBalance=socketManager.socketModel.playerData.Balance;
             slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
             slotManager.ProcessPayoutLines(LineId);
@@ -170,7 +169,7 @@ public class GameManager : MonoBehaviour
             // slotManager.ProcessPointsAnimations(points_AnimString);
             if(socketManager.socketModel.resultGameData.isbonus){
                 bonusManager.targetIndex=socketManager.socketModel.resultGameData.BonusIndex;
-                bonusManager.multipler=socketManager.socketModel.initGameData.Lines.Count;
+                bonusManager.multipler=socketManager.socketModel.initGameData.Bets[BetCounter];
                 bonusManager.StartBonus();
                 yield return new WaitUntil(()=>!bonusManager.isBonusPlaying);
             }
@@ -184,8 +183,6 @@ public class GameManager : MonoBehaviour
                 }
 
                 slotManager.WinningsAnim(true);
-                yield return new WaitUntil(()=>!bonusManager.isBonusPlaying);
-
             }
             if (!IsAutoSpin) slotManager.ToggleButtonGrp(true);
 
@@ -204,7 +201,9 @@ public class GameManager : MonoBehaviour
             OnSpinEnd();
             yield break;
         }
+        audioController.PlaySpinAudio();
         yield return ErrorHandler.RunSafely(slotManager.InitiateSpin(), OnError);
+
         yield return new WaitUntil(() => socketManager.isResultdone);
         OnSpin(socketManager.socketModel.resultGameData.ResultReel);
         yield return new WaitForSeconds(0.5f);
