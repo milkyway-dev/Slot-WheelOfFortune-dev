@@ -19,6 +19,10 @@ public class UIManager : MonoBehaviour
 
     [Header("Paytable Texts")]
     [SerializeField] private TMP_Text[] SymbolsText;
+    [SerializeField] private TMP_Text[] SymbolsTripleText;
+    [SerializeField] private TMP_Text AnyComboText;
+    [SerializeField] private TMP_Text SevenComboText;
+    [SerializeField] private TMP_Text BarComboText;
     [SerializeField] private TMP_Text Bonus_Text;
     [SerializeField] private Button PaytableExit_Button;
     [SerializeField] private Button Paytable_Button;
@@ -29,10 +33,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject SettingsPopup_Object;
     [SerializeField] private Button Settings_Button;
     [SerializeField] private Button SettingsExit_Button;
-    [SerializeField] private Button SoundOn_Button;
-    [SerializeField] private Button SoundOff_Button;
-    [SerializeField] private Button MusicOn_Button;
-    [SerializeField] private Button MusicOff_Button;
+
+    [SerializeField] private Slider MusicSlider;
+    [SerializeField] private Slider SoundSlider;
 
     [Header("all Win Popup")]
     [SerializeField] private TMP_Text Win_text_title;
@@ -44,17 +47,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject LowBalancePopup_Object;
     [SerializeField] private Button Close_Button;
 
-    //[Header("FreeSpins Popup")]
-    //[SerializeField]
-    //private GameObject FreeSpinPopup_Object;
-    //[SerializeField]
-    //private TMP_Text Free_Text;
-    //[SerializeField]
-    //private Button FreeSpin_Button;
-
     [Header("Scripts")]
     [SerializeField] private AudioController audioController;
-    [SerializeField] private SlotManager slotManager;
     [SerializeField] private SocketIOManager socketManager;
 
     [Header("disconnection popup")]
@@ -66,6 +60,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button yes_Button;
     [SerializeField] private Button GameExit_Button;
     [SerializeField] private Button no_Button;
+    internal Action closeSocket;
 
 
     [Header("Splash Screen")]
@@ -80,16 +75,15 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject ADPopup_Object;
     //private int FreeSpins;
     [Header("Pagination")]
-    int CurrentIndex = 0;
+    [SerializeField] private int CurrentIndex = 0;
     [SerializeField] private GameObject[] paytableList;
     [SerializeField] private Button RightBtn;
     [SerializeField] private Button LeftBtn;
-
-    private bool isMusic = true;
-    private bool isSound = true;
     private bool isExit = false;
 
-    public GameObject ActivePopup = null;
+    internal GameObject ActivePopup = null;
+
+    internal Action PlayButtonAudio;
 
     private void Awake()
     {
@@ -110,10 +104,8 @@ public class UIManager : MonoBehaviour
         SetButton(Paytable_Button, () => OpenPopup(Paytable_Object,true));
         SetButton(PaytableExit_Button, () => ClosePopup());
 
-        SetButton(MusicOn_Button, ToggleMusic);
-        SetButton(MusicOff_Button, ToggleMusic);
-        SetButton(SoundOn_Button, ToggleSound);
-        SetButton(SoundOff_Button, ToggleSound);
+        MusicSlider.onValueChanged.AddListener(ToggleMusic);
+        SoundSlider.onValueChanged.AddListener(ToggleSound);
 
         SetButton(LeftBtn, () => Slide(-1));
         SetButton(RightBtn, () => Slide(1));
@@ -121,10 +113,7 @@ public class UIManager : MonoBehaviour
         SetButton(CloseDisconnect_Button, CallOnExitFunction);
         SetButton(Close_Button, () => ClosePopup());
         SetButton(QuitSplash_button, () => OpenPopup(quitPopupObject));
-        // isMusic = false;
-        // isSound = false;
-        // ToggleMusic();
-        // ToggleSound();
+
 
 
     }
@@ -134,7 +123,10 @@ public class UIManager : MonoBehaviour
         if (button)
         {
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => action());
+            button.onClick.AddListener(() =>{ 
+                PlayButtonAudio?.Invoke();
+                action();
+            });
         }
     }
     internal void PopulateWin(int value, double amount, Action<bool> isDone)
@@ -148,7 +140,7 @@ public class UIManager : MonoBehaviour
                 if (Win_text_title) Win_text_title.text = "Huge Win";
                 break;
             case 3:
-                if (Win_text_title) Win_text_title.text = "Mega WIn";
+                if (Win_text_title) Win_text_title.text = "Mega Win";
                 break;
         }
 
@@ -158,16 +150,16 @@ public class UIManager : MonoBehaviour
 
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
 
-        DOTween.To(() => initAmount, (val) => initAmount = val, amount, 5f).OnUpdate(() =>
+        DOTween.To(() => initAmount, (val) => initAmount = val, amount, 3f).OnUpdate(() =>
         {
             if (Win_Text) Win_Text.text = initAmount.ToString("f2");
         });
 
-        DOVirtual.DelayedCall(6.5f, () =>
+        DOVirtual.DelayedCall(4f, () =>
         {
 
             ClosePopup();
-            slotManager.CheckPopups = false;
+            // slotManager.CheckPopups = false;
             isDone(false);
         });
 
@@ -209,26 +201,50 @@ public class UIManager : MonoBehaviour
 
     internal void InitialiseUIData(Paylines paylines)
     {
-        for (int i = 0; i < SymbolsText.Length; i++)
+        for (int i = 0; i < 5; i++)
         {
             string text = "";
-            if (paylines.symbols[i].payout.Type != JTokenType.Object)
+            if (paylines.symbols[i+1].payout.Type != JTokenType.Object)
             {
-                text += paylines.symbols[i].payout + "x";
+                text += "<color=#ffa500ff>3X </color>- "+paylines.symbols[i+1].payout + "x";
             }
 
             if (SymbolsText[i]) SymbolsText[i].text = text;
         }
 
-        for (int i = 0; i < paylines.symbols.Count; i++)
+        for (int i = 6; i < 11; i++)
         {
-
-            if (paylines.symbols[i].Name.ToUpper() == "BONUS")
+            string text = "";
+            if (paylines.symbols[i].payout.Type != JTokenType.Object)
             {
-                if (Bonus_Text) Bonus_Text.text = paylines.symbols[i].description.ToString();
+                text += "<color=#ffa500ff>3X </color>- "+paylines.symbols[i].payout + "x";
             }
+
+            if (SymbolsTripleText[i-6]) SymbolsTripleText[i-6].text = text;
         }
-        //PopulateSpecialSymbols(Specialsymbols);
+
+        if (paylines.symbols[11].payout.Type != JTokenType.Object)
+        SymbolsText[SymbolsText.Length-1].text="<color=#ffa500ff>3X </color>- "+paylines.symbols[11].payout.ToString()+"x";
+
+        if (paylines.symbols[13].payout.Type != JTokenType.Object)
+        AnyComboText.text="Any <color=#ffa500ff>3X </color>- "+paylines.symbols[13].payout.ToString()+"x";
+
+        if (paylines.symbols[1].mixedPayout.Type != JTokenType.Object)
+        SevenComboText.text="Any <color=#ffa500ff>3X </color>- "+paylines.symbols[1].mixedPayout.ToString()+"x";
+
+        if (paylines.symbols[4].mixedPayout.Type != JTokenType.Object)
+        BarComboText.text="Any <color=#ffa500ff>3X </color>- "+paylines.symbols[4].mixedPayout.ToString()+"x";
+
+        if (paylines.symbols[12].symbolsCount.Type != JTokenType.Object)
+        Bonus_Text.text=$"Any <color=#ffa500ff>{paylines.symbols[12].symbolsCount}X </color>- triggers bonus game. \n Tap the spin button to spin the wheel and get exciting reward.";
+        // for (int i = 0; i < paylines.symbols.Count; i++)
+        // {
+
+        //     if (paylines.symbols[i].Name.ToUpper() == "BONUS")
+        //     {
+        //         if (Bonus_Text) Bonus_Text.text = paylines.symbols[i].description.ToString();
+        //     }
+        // }
     }
 
     internal void ADfunction()
@@ -236,16 +252,11 @@ public class UIManager : MonoBehaviour
         OpenPopup(ADPopup_Object);
     }
 
-    private void PopulateSymbolsPayout(Paylines paylines)
-    {
-
-    }
-
     private void CallOnExitFunction()
     {
         isExit = true;
         audioController.PlayButtonAudio();
-        socketManager.CloseSocket();
+        closeSocket?.Invoke();
         Application.ExternalCall("window.parent.postMessage", "onExit", "*");
     }
 
@@ -277,7 +288,7 @@ public class UIManager : MonoBehaviour
 
     private void Slide(int direction)
     {
-        if (audioController) audioController.PlayButtonAudio();
+        // if (audioController) audioController.PlayButtonAudio();
 
         if (CurrentIndex < paytableList.Length - 1 && direction > 0)
         {
@@ -286,8 +297,6 @@ public class UIManager : MonoBehaviour
             paytableList[CurrentIndex + 1].SetActive(true);
 
             CurrentIndex++;
-
-
 
         }
         else if (CurrentIndex >= 1 && direction < 0)
@@ -335,40 +344,17 @@ public class UIManager : MonoBehaviour
 
 
 
-    private void ToggleMusic()
+    private void ToggleMusic(float value)
     {
-        isMusic = !isMusic;
-        if (isMusic)
-        {
-            if (MusicOn_Button) MusicOn_Button.interactable = false;
-            if (MusicOff_Button) MusicOff_Button.interactable = true;
-            audioController.ToggleMute(false, "bg");
-        }
-        else
-        {
-            if (MusicOn_Button) MusicOn_Button.interactable = true;
-            if (MusicOff_Button) MusicOff_Button.interactable = false;
-            audioController.ToggleMute(true, "bg");
-        }
+       
+        audioController.ToggleMute( value);
     }
 
-    private void ToggleSound()
+    private void ToggleSound(float value)
     {
-        isSound = !isSound;
-        if (isSound)
-        {
-            if (SoundOn_Button) SoundOn_Button.interactable = false;
-            if (SoundOff_Button) SoundOff_Button.interactable = true;
-            if (audioController) audioController.ToggleMute(false, "button");
-            if (audioController) audioController.ToggleMute(false, "wl");
-        }
-        else
-        {
-            if (SoundOn_Button) SoundOn_Button.interactable = true;
-            if (SoundOff_Button) SoundOff_Button.interactable = false;
-            if (audioController) audioController.ToggleMute(true, "button");
-            if (audioController) audioController.ToggleMute(true, "wl");
-        }
+        if (audioController) audioController.ToggleMute(value, "button");
+        if (audioController) audioController.ToggleMute(value, "wl");
+
     }
 
 }

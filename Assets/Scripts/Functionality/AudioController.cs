@@ -13,8 +13,10 @@ public class AudioController : MonoBehaviour
     [Header("clips")]
     [SerializeField] private AudioClip SpinButtonClip;
     [SerializeField] private AudioClip SpinClip;
+    [SerializeField] private AudioClip BonusSpinClip;
     [SerializeField] private AudioClip Button;
     [SerializeField] private AudioClip Win_Audio;
+    [SerializeField] private AudioClip Bonus_Win_Audio;
     [SerializeField] private AudioClip NormalBg_Audio;
     [SerializeField] private AudioClip BonusBg_Audio;
 
@@ -25,33 +27,39 @@ public class AudioController : MonoBehaviour
         //audioPlayer_button.clip = clips[clips.Length - 1];
     }
 
-    internal void PlayWLAudio(string type)
+    internal void PlayWLAudio(string type, bool loop)
     {
+        StopWLAaudio();
+        // audioPlayer_wl.loop=loop;
 
         switch (type)
         {
 
             case "win":
-                //index = UnityEngine.Random.Range(1, 2);
                 audioPlayer_wl.clip = Win_Audio;
+                break;
+            case "bonuswin":
+                audioPlayer_wl.clip = Bonus_Win_Audio;
                 break;
 
                 //index = 3;
 
         }
-        StopWLAaudio();
         //audioPlayer_wl.clip = clips[index];
         //audioPlayer_wl.loop = true;
         audioPlayer_wl.Play();
 
     }
 
-    internal void PlaySpinAudio()
+    internal void PlaySpinAudio(string type = "default")
     {
 
         if (audioPlayer_Spin)
         {
-            audioPlayer_Spin.clip = SpinClip;
+            if (type == "bonus")
+                audioPlayer_Spin.clip = BonusSpinClip;
+            else
+                audioPlayer_Spin.clip = SpinClip;
 
             audioPlayer_Spin.Play();
         }
@@ -85,7 +93,7 @@ public class AudioController : MonoBehaviour
 
 
 
-    internal void playBgAudio(string type="default")
+    internal void playBgAudio(string type = "default")
     {
 
 
@@ -93,10 +101,10 @@ public class AudioController : MonoBehaviour
         StopBgAudio();
         if (bg_adudio)
         {
-            if(type=="bonus")
-            bg_adudio.clip = BonusBg_Audio;
+            if (type == "bonus")
+                bg_adudio.clip = BonusBg_Audio;
             else
-            bg_adudio.clip = NormalBg_Audio;
+                bg_adudio.clip = NormalBg_Audio;
 
 
             bg_adudio.Play();
@@ -139,25 +147,34 @@ public class AudioController : MonoBehaviour
     }
 
 
-    internal void ToggleMute(bool toggle, string type = "all")
+    internal void ToggleMute(float value, string type = "all")
     {
 
         switch (type)
         {
             case "bg":
-                bg_adudio.mute = toggle;
+                    bg_adudio.mute = value <0.1;
+                    bg_adudio.volume = value;
                 break;
             case "button":
-                audioPlayer_button.mute = toggle;
-                audioPlayer_Spin.mute = toggle;
+                audioPlayer_button.mute = value<0.1;
+                audioPlayer_Spin.mute=value<0.1;
+
+                audioPlayer_button.volume = value;
+                audioPlayer_Spin.volume = value;
                 break;
             case "wl":
-                audioPlayer_wl.mute = toggle;
+                audioPlayer_wl.mute = value<0.1;
+                audioPlayer_wl.volume = value;
                 break;
             case "all":
-                audioPlayer_wl.mute = toggle;
-                bg_adudio.mute = toggle;
-                audioPlayer_button.mute = toggle;
+                audioPlayer_wl.mute = value<0.1;
+                bg_adudio.mute = value<0.1;
+                audioPlayer_button.mute = value<0.1;
+                
+                audioPlayer_wl.volume = value;
+                bg_adudio.volume = value;
+                audioPlayer_button.volume = value;
                 break;
         }
     }

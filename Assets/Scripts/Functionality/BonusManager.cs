@@ -5,6 +5,7 @@ using System.Collections;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System;
 
 public class BonusManager : MonoBehaviour
 {
@@ -33,6 +34,11 @@ public class BonusManager : MonoBehaviour
     internal int targetIndex;
     internal double multipler;
 
+    internal Action PlayButtonAudio;
+    internal Action PlaySpinAudio;
+    internal Action PlayWinAudio;
+    internal Action StopSpinAudio;
+    internal Action StopWinAudio;
 
     internal bool isBonusPlaying=false;
     void Start()
@@ -57,7 +63,7 @@ public class BonusManager : MonoBehaviour
     private void OnSpinStart()
     {
 
-
+        PlayButtonAudio?.Invoke();
         Spin_Button.interactable = false;
         rotationTween ??= rotator.DOLocalRotate(new Vector3(0, 0, -360), 2.5f, RotateMode.LocalAxisAdd)
               .SetLoops(-1, LoopType.Incremental)
@@ -73,8 +79,9 @@ public class BonusManager : MonoBehaviour
         Debug.Log("started stopping");
         if (rotationTween == null)
             yield break;
-
-        yield return new WaitForSeconds(3f);
+        
+        PlaySpinAudio?.Invoke();
+        yield return new WaitForSeconds(2f);
         winText.text = (values[targetIndex] * multipler).ToString();
         rotationTween.timeScale = 0.5f;
         float targetAngle = targetIndex * degreesPerSegment;
@@ -102,10 +109,13 @@ public class BonusManager : MonoBehaviour
             {
                 rotationTween.Kill();
                 rotationTween=null;
-                rotator.DOLocalRotate(new Vector3(0, 0, targetAngle - offSet), 0.25f).SetEase(Ease.Linear);
+                rotator.DOLocalRotate(new Vector3(0, 0, targetAngle - offSet), 0.2f).SetEase(Ease.Linear);
                 CancelInvoke(nameof(LightAnimation));
                 lightOff.SetActive(false);
-                yield return new WaitForSeconds(1.5f);
+                StopSpinAudio?.Invoke();
+                PlayWinAudio?.Invoke();
+                yield return new WaitForSeconds(1f);
+                StopWinAudio?.Invoke();
                 OnSpinEnd();
                 break;
             }
@@ -119,7 +129,6 @@ public class BonusManager : MonoBehaviour
     {
         winPopup.transform.localScale = Vector3.zero;
         winPopup.SetActive(true);
-
         winPopup.transform.DOScale(Vector3.one, 1.3f).SetEase(Ease.OutElastic).OnComplete(() =>
         {
             winPopup.SetActive(false);

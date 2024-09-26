@@ -37,6 +37,8 @@ public class SocketIOManager : MonoBehaviour
     //private string SocketURI;
 
     protected string SocketURI = null;
+
+    // TODO: WF to be changed
     protected string TestSocketURI = "http://localhost:5000";
     //protected string SocketURI = "http://localhost:5000";
 
@@ -52,11 +54,12 @@ public class SocketIOManager : MonoBehaviour
     private const int maxReconnectionAttempts = 6;
     private readonly TimeSpan reconnectionDelay = TimeSpan.FromSeconds(10);
 
+    internal Action InitGameData=null;
     private void Awake()
     {
         isLoading = true;
         SetInit = false;
-        OpenSocket();
+        // OpenSocket();
 
         // Debug.unityLogger.logEnabled = false;
     }
@@ -64,7 +67,7 @@ public class SocketIOManager : MonoBehaviour
     private void Start()
     {
         //OpenWebsocket();
-        // OpenSocket();
+        OpenSocket();
     }
 
 
@@ -275,8 +278,9 @@ public class SocketIOManager : MonoBehaviour
             socketModel.initGameData.Bets = gameData["Bets"].ToObject<List<double>>();
             socketModel.initGameData.Lines = gameData["Lines"].ToObject<List<List<int>>>();
             socketModel.initGameData.BonusPayout = gameData["BonusPayout"].ToObject<List<int>>();
-            isLoading = false;
-            // Application.ExternalCall("window.parent.postMessage", "OnEnter", "*");
+            // COMPLETED: WF multiple parsheet
+            InitGameData?.Invoke();
+
         }
         else if (messageId == "ResultData")
         {

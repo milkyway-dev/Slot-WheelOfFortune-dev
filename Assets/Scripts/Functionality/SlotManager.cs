@@ -54,11 +54,6 @@ public class SlotManager : MonoBehaviour
     [SerializeField] private TMP_Text BetPerLine_text;
     [SerializeField] private TMP_Text Total_lines;
 
-    [Header("Audio Management")]
-    [SerializeField] private AudioController audioController;
-
-
-    [SerializeField] private GameObject Image_Prefab;
 
     [SerializeField] private PayoutCalculation PayCalculator;
 
@@ -68,21 +63,6 @@ public class SlotManager : MonoBehaviour
 
     [SerializeField] private List<ImageAnimation> TempList;
 
-    [SerializeField] private int IconSizeFactor = 100;
-
-    [SerializeField] private UIManager uiManager;
-
-    private Coroutine AutoSpinRoutine = null;
-    private Coroutine tweenroutine = null;
-    private bool IsSpinning = false;
-    [SerializeField] private int spacefactor;
-
-    private int BetCounter = 0;
-    private int LineCounter = 0;
-
-    internal bool CheckPopups;
-    private double currentBalance = 0;
-    private double currentTotalBet = 0;
 
 
     [SerializeField] private List<int> LineId;
@@ -96,6 +76,10 @@ public class SlotManager : MonoBehaviour
     [SerializeField] private int y_Distance;
     [SerializeField] private Transform LineContainer;
     [SerializeField] private GameObject Line_Prefab;
+    List<int> y_points0 = new List<int>() { 0, 0, 0 }; 
+    List<int> y_points1 = new List<int>() { 1, 1, 1 }; 
+    List<int> y_points2 = new List<int>() { 2, 2, 2 };
+
     private void Start()
     {
         tweenHeight = reelHeight + stopPosition;
@@ -125,14 +109,12 @@ public class SlotManager : MonoBehaviour
                    {
                        lastElement = slot1Segment[slot1Segment.Length - 1];
 
-                       // Shift array elements down
                        for (int i = slot1Segment.Length - 1; i > 0; i--)
                        {
                            slot1Segment[i] = slot1Segment[i - 1];
                        }
                        slot1Segment[0] = lastElement;
 
-                       // Reactivate the last element
                        slot1Segment[0].gameObject.SetActive(true);
                    });
     }
@@ -149,12 +131,12 @@ public class SlotManager : MonoBehaviour
 
 
     // TODO: Wf update  bet text
-    internal void UpdateBetText(double betperline, int  totalLines)
+    internal void UpdateBetText(double betperline, int totalLines)
     {
         Debug.Log($"in update text {betperline},{totalLines}");
-        if (audioController) audioController.PlayButtonAudio();
+        // if (audioController) audioController.PlayButtonAudio();
         if (BetPerLine_text) BetPerLine_text.text = betperline.ToString();
-        if (TotalBet_text) TotalBet_text.text = (totalLines*betperline).ToString();
+        if (TotalBet_text) TotalBet_text.text = (totalLines * betperline).ToString();
         // CompareBalance();
     }
 
@@ -285,7 +267,7 @@ public class SlotManager : MonoBehaviour
         double initAmount = balance;
         balance = balance - (bet);
 
-        DOTween.To(() => initAmount, (val) => initAmount = val, balance, 0.8f).OnUpdate(() =>
+        DOTween.To(() => initAmount, (val) => initAmount = val, balance, 0.5f).OnUpdate(() =>
         {
             if (Balance_text) Balance_text.text = initAmount.ToString("f2");
         });
@@ -296,7 +278,7 @@ public class SlotManager : MonoBehaviour
     {
         if (IsStart)
         {
-            WinTween = TotalWin_text.transform.DOScale(new Vector2(1.5f, 1.5f), 1f).SetLoops(-1, LoopType.Yoyo).SetDelay(0);
+            WinTween = TotalWin_text.transform.DOScale(new Vector2(1.15f, 1.5f), 1f).SetLoops(-1, LoopType.Yoyo).SetDelay(0);
         }
         else
         {
@@ -312,7 +294,7 @@ public class SlotManager : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-        TotalWin_text.text="0";
+        TotalWin_text.text = "0";
     }
     //manage the Routine for spinning of the slots
 
@@ -346,7 +328,8 @@ public class SlotManager : MonoBehaviour
         Tweener tweener = null;
         for (int i = 0; i < Slot_Transform.Length; i++)
         {
-            tweener = Slot_Transform[i].DOLocalMoveY(-tweenHeight, 0.45f, false).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
+
+            tweener = Slot_Transform[i].DOLocalMoveY(-tweenHeight, 0.2f, false).SetLoops(-1, LoopType.Restart).SetDelay(0).SetEase(Ease.Linear);
             // tweener.Play();
             alltweens.Add(tweener);
             // InitializeTweening(Slot_Transform[i]);
@@ -356,13 +339,13 @@ public class SlotManager : MonoBehaviour
 
     internal IEnumerator TerminateSpin()
     {
-        WaitForSeconds delay = new WaitForSeconds(0.3f);
+        WaitForSeconds delay = new WaitForSeconds(0.35f);
 
         for (int i = 0; i < alltweens.Count; i++)
         {
             alltweens[i].Pause();
             Slot_Transform[i].localPosition = new Vector2(Slot_Transform[i].localPosition.x, 0);
-            alltweens[i] = Slot_Transform[i].DOLocalMoveY(stopPosition, 0.2f).SetEase(Ease.OutExpo);
+            alltweens[i] = Slot_Transform[i].DOLocalMoveY(stopPosition, 0.35f).SetEase(Ease.OutQuad);
             yield return delay;
             alltweens[i].Kill();
             // yield return StopTweening(Slot_Transform[i], i);
@@ -371,29 +354,6 @@ public class SlotManager : MonoBehaviour
         // KillAllTweens();
     }
 
-
-
-
-    internal int  CheckWinPopups(double WinAmout)
-    {
-        if (WinAmout >= currentTotalBet * 10 && WinAmout < currentTotalBet * 15)
-        {
-            return 1;
-        }
-        else if (WinAmout >= currentTotalBet * 15 && WinAmout < currentTotalBet * 20)
-        {
-            return 2;
-
-        }
-        else if (WinAmout >= currentTotalBet * 20)
-        {
-            return 3;
-        }else{
-
-            return 0;
-        }
-
-    }
 
     internal void shuffleInitialMatrix()
     {
@@ -450,12 +410,16 @@ public class SlotManager : MonoBehaviour
 
     internal void ProcessPayoutLines(List<int> LineId)
     {
-        List<int> y_points = new List<int>() { 2, 2, 2 }; // Default y_points
 
         for (int i = 0; i < LineId.Count; i++)
         {
             // y_points could be modified here if needed
-            GeneratePayline(y_points, 3); // Generating the payline with y_points
+            if(LineId[i]==0)
+            GeneratePayline(y_points0);
+            else if(LineId[i]==1)
+            GeneratePayline(y_points1); 
+            else if(LineId[i]==2)
+            GeneratePayline(y_points2); 
         }
     }
 
@@ -486,13 +450,13 @@ public class SlotManager : MonoBehaviour
     }
 
     //generate the payout lines generated 
-    private void GeneratePayline(List<int> y_index, int Count)
+    private void GeneratePayline(List<int> y_index)
     {
         GameObject MyLineObj = Instantiate(Line_Prefab, LineContainer);
         MyLineObj.transform.localPosition = new Vector2(InitialLinePosition.x, InitialLinePosition.y);
         UILineRenderer MyLine = MyLineObj.GetComponent<UILineRenderer>();
         List<Vector2> pointlist = new List<Vector2>();
-        for (int i = 0; i < Count; i++)
+        for (int i = 0; i < 3; i++)
         {
             pointlist.Add(new Vector2(i * x_Distance, y_index[i] * -y_Distance));
         }
