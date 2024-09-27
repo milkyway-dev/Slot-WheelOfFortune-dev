@@ -15,26 +15,16 @@ using System.Runtime.Serialization;
 
 public class SocketIOManager : MonoBehaviour
 {
-    [Header("scripts")]
-    [SerializeField] private SlotManager slotManager;
-    [SerializeField] private UIManager uIManager;
-    internal UIData initUIData = null;
-    internal PlayerData playerdata = null;
 
     internal SocketModel socketModel = new SocketModel();
 
     private Helper helper = new Helper();
 
     //WebSocket currentSocket = null;
-    [SerializeField]internal bool isResultdone = false;
+    internal bool isResultdone = false;
 
     private SocketManager manager;
 
-    [SerializeField]
-    internal JSHandler _jsManager;
-
-    //[SerializeField]
-    //private string SocketURI;
 
     protected string SocketURI = null;
 
@@ -46,8 +36,8 @@ public class SocketIOManager : MonoBehaviour
     private string TestToken;
 
     // TODO: WF to be added
-    protected string gameID = "";
-    // protected string gameID = "SL-WF";
+    // protected string gameID = "";
+    protected string gameID = "SL-WF";
 
     internal bool isLoading;
     internal bool SetInit = false;
@@ -55,6 +45,8 @@ public class SocketIOManager : MonoBehaviour
     private readonly TimeSpan reconnectionDelay = TimeSpan.FromSeconds(10);
 
     internal Action InitGameData=null;
+    internal Action ShowDisconnectionPopUp=null;
+    internal Action ShowAnotherDevicePopUp=null;
     private void Awake()
     {
         isLoading = true;
@@ -172,7 +164,8 @@ public class SocketIOManager : MonoBehaviour
     private void OnSocketOtherDevice(string data)
     {
         Debug.Log("Received Device Error with data: " + data);
-        uIManager.ADfunction();
+        // uIManager.ADfunction();
+        ShowAnotherDevicePopUp?.Invoke();
     }
 
     private void AliveRequest()
@@ -197,7 +190,8 @@ public class SocketIOManager : MonoBehaviour
     {
         Debug.Log("Disconnected from the server");
         StopAllCoroutines();
-        uIManager.DisconnectionPopup();
+        ShowDisconnectionPopUp?.Invoke();
+        // uIManager.DisconnectionPopup();
     }
 
     private void OnError(string response)
@@ -238,13 +232,8 @@ public class SocketIOManager : MonoBehaviour
 
     internal void InitRequest(string eventName)
     {
-        InitData message = new InitData();
-        message.Data = new AuthData();
-        message.Data.GameID = gameID;
-        message.id = "Auth";
-        // Serialize message data to JSON
-        string json = JsonUtility.ToJson(message);
-        SendData(eventName, json);
+        var initmessage=new { Data= new { GameID=gameID }, id="Auth" };
+        SendData(eventName, initmessage);
     }
 
     internal void CloseSocket()
@@ -315,7 +304,6 @@ public class SocketIOManager : MonoBehaviour
 
     internal void SendData(string eventName, object message = null)
     {
-        string json = JsonConvert.SerializeObject(message);
 
         if (this.manager.Socket == null || !this.manager.Socket.IsOpen)
         {
@@ -328,6 +316,7 @@ public class SocketIOManager : MonoBehaviour
             return;
         }
         isResultdone = false;
+        string json = JsonConvert.SerializeObject(message);
         this.manager.Socket.Emit(eventName, json);
         Debug.Log("JSON data sent: " + json);
 
