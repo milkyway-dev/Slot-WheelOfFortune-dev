@@ -30,8 +30,6 @@ public class SocketIOManager : MonoBehaviour
 
     private SocketManager manager;
 
-    [SerializeField]
-    internal JSHandler _jsManager;
 
     //[SerializeField]
     //private string SocketURI;
