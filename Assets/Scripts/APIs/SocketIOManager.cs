@@ -37,7 +37,7 @@ public class SocketIOManager : MonoBehaviour
 
     // TODO: WF to be added
     // protected string gameID = "";
-    protected string gameID = "SL-WF";
+    protected string gameID = "SL-WOF";
 
     internal bool isLoading;
     internal bool SetInit = false;
