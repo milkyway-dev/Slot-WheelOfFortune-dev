@@ -24,6 +24,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text SevenComboText;
     [SerializeField] private TMP_Text BarComboText;
     [SerializeField] private TMP_Text Bonus_Text;
+    [SerializeField] private TMP_Text Rule_Text;
     [SerializeField] private Button PaytableExit_Button;
     [SerializeField] private Button Paytable_Button;
     [SerializeField] private GameObject Paytable_Object;
@@ -82,7 +83,7 @@ public class UIManager : MonoBehaviour
 
     internal Action PlayButtonAudio;
 
-    internal Action<float,string> ToggleAudio;
+    internal Action<float, string> ToggleAudio;
     private void Awake()
     {
         // if (spalsh_screen) spalsh_screen.SetActive(true);
@@ -112,6 +113,7 @@ public class UIManager : MonoBehaviour
         SetButton(Close_Button, () => ClosePopup());
         SetButton(QuitSplash_button, () => OpenPopup(quitPopupObject));
 
+        SetButton(CloseAD_Button, CallOnExitFunction);
 
 
     }
@@ -121,7 +123,8 @@ public class UIManager : MonoBehaviour
         if (button)
         {
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() =>{ 
+            button.onClick.AddListener(() =>
+            {
                 PlayButtonAudio?.Invoke();
                 action();
             });
@@ -153,7 +156,6 @@ public class UIManager : MonoBehaviour
 
         DOVirtual.DelayedCall(4f, () =>
         {
-
             ClosePopup();
             isDone(false);
         });
@@ -199,39 +201,40 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < 5; i++)
         {
             string text = "";
-            if (paylines.symbols[i+1].payout.Type != JTokenType.Object)
-            {
-                text += "<color=#ffa500ff>3X </color>- "+paylines.symbols[i+1].payout + "x";
-            }
-
+            text += "<color=#ffa500ff>3X </color>- " + paylines.symbols[i + 1].payout + "x";
             if (SymbolsText[i]) SymbolsText[i].text = text;
         }
 
         for (int i = 6; i < 11; i++)
         {
             string text = "";
-            if (paylines.symbols[i].payout.Type != JTokenType.Object)
-            {
-                text += "<color=#ffa500ff>3X </color>- "+paylines.symbols[i].payout + "x";
-            }
 
-            if (SymbolsTripleText[i-6]) SymbolsTripleText[i-6].text = text;
+            text += "<color=#ffa500ff>3X </color>- " + paylines.symbols[i].payout + "x";
+
+
+            if (SymbolsTripleText[i - 6]) SymbolsTripleText[i - 6].text = text;
         }
 
-        if (paylines.symbols[11].payout.Type != JTokenType.Object)
-        SymbolsText[SymbolsText.Length-1].text="<color=#ffa500ff>3X </color>- "+paylines.symbols[11].payout.ToString()+"x";
+        SymbolsText[SymbolsText.Length - 1].text = "<color=#ffa500ff>3X </color>- " + paylines.symbols[11].payout.ToString() + "x";
 
-        if (paylines.symbols[13].payout.Type != JTokenType.Object)
-        AnyComboText.text="Any <color=#ffa500ff>3X </color>- "+paylines.symbols[13].payout.ToString()+"x";
+        AnyComboText.text = "Any <color=#ffa500ff>3X </color>- " + paylines.symbols[13].payout.ToString() + "x";
 
-        if (paylines.symbols[1].mixedPayout.Type != JTokenType.Object)
-        SevenComboText.text="Any <color=#ffa500ff>3X </color>- "+paylines.symbols[1].mixedPayout.ToString()+"x";
+        SevenComboText.text = paylines.symbols[1].mixedPayout.Type != JTokenType.Object
+            ? $"Any <color=#ffa500ff>3X </color>- {paylines.symbols[1].mixedPayout}x"
+            : "";
 
-        if (paylines.symbols[4].mixedPayout.Type != JTokenType.Object)
-        BarComboText.text="Any <color=#ffa500ff>3X </color>- "+paylines.symbols[4].mixedPayout.ToString()+"x";
+        BarComboText.text = paylines.symbols[4].mixedPayout.Type != JTokenType.Object
+            ? $"Any <color=#ffa500ff>3X </color>- {paylines.symbols[4].mixedPayout}x"
+            : "";
 
-        if (paylines.symbols[12].symbolsCount.Type != JTokenType.Object)
-        Bonus_Text.text=$"Any <color=#ffa500ff>{paylines.symbols[12].symbolsCount}X </color>- triggers bonus game. \n Tap the spin button to spin the wheel and get exciting reward.";
+        Bonus_Text.text = paylines.symbols[12].symbolsCount.Type != JTokenType.Object
+            ? $"Any <color=#ffa500ff>{paylines.symbols[12].symbolsCount}X </color>- triggers bonus game. \n Tap the spin button to spin the wheel and get exciting reward."
+            : "_";
+
+
+        Rule_Text.text = paylines.symbols[13].description.Type != JTokenType.Object ? paylines.symbols[13].description.ToString() : "";
+
+
         // for (int i = 0; i < paylines.symbols.Count; i++)
         // {
 
@@ -260,11 +263,12 @@ public class UIManager : MonoBehaviour
         // if(playAudio)
         // audioController.PlayButtonAudio();
 
-        if(ActivePopup!=null && !DisconnectPopup_Object.activeSelf){
+        if (ActivePopup != null && !DisconnectPopup_Object.activeSelf)
+        {
             ActivePopup.SetActive(false);
-            ActivePopup=null;
+            ActivePopup = null;
         }
-        
+
         if (Popup) Popup.SetActive(true);
         if (MainPopup_Object) MainPopup_Object.SetActive(true);
         ActivePopup = Popup;
@@ -345,8 +349,8 @@ public class UIManager : MonoBehaviour
 
     private void ToggleMusic(float value)
     {
-       
-        ToggleAudio?.Invoke( value,"bg");
+
+        ToggleAudio?.Invoke(value, "bg");
     }
 
     private void ToggleSound(float value)

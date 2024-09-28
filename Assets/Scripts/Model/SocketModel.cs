@@ -79,10 +79,10 @@ public class Symbol
 {
     public int ID { get; set; }
     public string Name { get; set; }
-    public JToken payout { get; set; }
+    public float payout { get; set; }
     public JToken mixedPayout { get; set; }
     public JToken symbolsCount { get; set; }
-    public object description { get; set; }
+    public JToken description { get; set; }
     // public int freeSpin { get; set; }
 }
 
