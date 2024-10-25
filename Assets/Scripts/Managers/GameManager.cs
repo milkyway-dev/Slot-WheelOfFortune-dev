@@ -115,8 +115,8 @@ public class GameManager : MonoBehaviour
     private IEnumerator StopAutoSpinCoroutine()
     {
         yield return new WaitUntil(() => !IsSpinning);
-        StopAllCoroutines();
         ToggleButtonGrp(true);
+        StopAllCoroutines();
     }
 
     void StartSpin()
@@ -186,8 +186,9 @@ public class GameManager : MonoBehaviour
         }, OnError);
     }
 
-    IEnumerator OnSpinEnd()
+    IEnumerator OnSpinEnd(bool lowbal=false)
     {
+        if(!lowbal){
             audioController.StopSpinAudio();
             currentBalance=socketManager.socketModel.playerData.Balance;
             slotManager.UpdatePlayerData(socketManager.socketModel.playerData);
@@ -218,6 +219,8 @@ public class GameManager : MonoBehaviour
 
                 slotManager.WinningsAnim(true);
             }
+        }
+
             if (!IsAutoSpin) ToggleButtonGrp(true);
 
             yield return null;
@@ -232,7 +235,11 @@ public class GameManager : MonoBehaviour
         bool start = OnSpinStart();
         if (!start)
         {
-            OnSpinEnd();
+            OnSpinEnd(true);
+            if(IsAutoSpin){
+                // IsAutoSpin=false;
+                StopAutoSpin();
+            }
             yield break;
         }
         audioController.PlaySpinAudio();
