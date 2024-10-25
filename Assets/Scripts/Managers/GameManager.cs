@@ -165,6 +165,7 @@ public class GameManager : MonoBehaviour
             slotManager.StopGameAnimation();
             slotManager.WinningsAnim(false);
             slotManager.ResetLinesAndWins();
+            currentBalance=socketManager.socketModel.playerData.Balance;
             bool start = CompareBalance();
             if (start)
             {
