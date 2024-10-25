@@ -5433,7 +5433,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c6dee67c9fb64b7bbed44da112a7af7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TestToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZDgzY2U1YTI3YmY5MDI0NDNlYjRjMCIsInVzZXJuYW1lIjoic2F5YW4iLCJyb2xlIjoicGxheWVyIiwiaWF0IjoxNzI5NTkyNjQzLCJleHAiOjE3MzAxOTc0NDN9.pDET0HWfZkC8TALUNBfcmfG7lKKxE_N4DCf992bNJ5w
+  TestToken: 
 --- !u!1 &501733827
 GameObject:
   m_ObjectHideFlags: 0
