@@ -236,14 +236,7 @@ public class SocketIOManager : MonoBehaviour
     internal void CloseSocket()
     {
         SendData("EXIT");
-        DOVirtual.DelayedCall(0.1f, () =>
-        {
-            if (this.manager != null)
-            {
-                Debug.Log("Dispose my Socket");
-                this.manager.Close();
-            }
-        });
+
     }
 
     private void ParseResponse(string jsonObject)
@@ -254,9 +247,12 @@ public class SocketIOManager : MonoBehaviour
         // string id = myData.id;
         string messageId = resp["id"].ToString();
 
-        var message = resp["message"];
-        var gameData = message["GameData"];
-        socketModel.playerData = message["PlayerData"].ToObject<PlayerData>();
+        // var message = resp["message"];
+        // var gameData = message["GameData"];
+        if (resp["message"].Type == JTokenType.Object && resp["message"]["PlayerData"]!=null){
+            socketModel.playerData = resp["message"]["PlayerData"].ToObject<PlayerData>();
+        }
+
 
         if (messageId == "InitData")
         {
@@ -270,10 +266,10 @@ public class SocketIOManager : MonoBehaviour
         }
         else if (messageId == "ResultData")
         {
-            socketModel.resultGameData.ResultReel = helper.ConvertStringListsToIntLists(gameData["resultSymbols"].ToObject<List<List<string>>>());
-            socketModel.resultGameData.linesToEmit = gameData["linestoemit"].ToObject<List<int>>();
-            socketModel.resultGameData.isbonus = gameData["isbonus"].ToObject<bool>();
-            socketModel.resultGameData.BonusIndex = gameData["BonusIndex"].ToObject<int>();
+            socketModel.resultGameData.ResultReel = helper.ConvertStringListsToIntLists(resp["message"]["GameData"]["resultSymbols"].ToObject<List<List<string>>>());
+            socketModel.resultGameData.linesToEmit = resp["message"]["GameData"]["linestoemit"].ToObject<List<int>>();
+            socketModel.resultGameData.isbonus = resp["message"]["GameData"]["isbonus"].ToObject<bool>();
+            socketModel.resultGameData.BonusIndex = resp["message"]["GameData"]["BonusIndex"].ToObject<int>();
             isResultdone = true;
             print("result data: " + JsonConvert.SerializeObject(socketModel.resultGameData.ResultReel));
 
